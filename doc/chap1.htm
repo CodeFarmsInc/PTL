@@ -1,0 +1,96 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+
+<head>
+<meta http-equiv="Content-Type"
+content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 2.0">
+<title>Pattern Template Library  -  Chap.1</title>
+</head>
+
+<body bgcolor="#FFFFFF">
+
+<h2>Chap.1: INSTALLATION </h2>
+
+<hr>
+
+<p>This library comes in full source code, and all you have to do
+is to unpack it or copy the directory tree onto your hard disk.
+The instructions are provided with the software. </p>
+
+<p>Under the root directory PTL, you will have the following
+directories: </p>
+
+<ul>
+    <li>LIB ... the library itself, one file *.h for each class
+        template.</li>
+    <li>ENVIR ... directory which lets you convert the library
+        easily to different operating systems and compilers, and
+        contains compilation script files for the regression
+        tests.</li>
+    <li>MGR ... source and executable of the Template Manager,
+        and of a special DIFF program which is used in regression
+        testing. </li>
+    <li>DOC ... the documentation (User Guide) in the HTML
+        format. </li>
+    <li>TTEST ... regression test suite using plain templates
+        (not the Template Manager). </li>
+    <li>MTEST ... regression test suite using the Template
+        Manager. </li>
+    <li>OUT ... correct results for all tests (identical for
+        TTEST and MTEST). </li>
+</ul>
+
+<p>After you install all the files, recompile the library using
+these steps: </p>
+
+<ol>
+    <li>Change to directory PTL\ENVIR, and select the batch file
+        corresponding to your favorite compiler. For example, for
+        Microsoft Visual C++, type <em>msft,</em> or for Borland
+        C++ type <em>borland</em>. If there is no batch file for
+        your compiler, modify one of these files. </li>
+    <li>Change to directory MGR, and type <em>all</em>. This will
+        recompile the Template Manager, and a special <em>diff </em>program
+        used in the regression tests. </li>
+    <li>There is no need to recompile the library itself.
+        Directory LIB contains source code for all the templates
+        which must be compiled again with each application. </li>
+</ol>
+
+<p>All the documentation is in the directory DOC. The
+documentation is in HTML format, and you can conveniently browse
+through it with any www browser, such as the Netscape Navigator
+or the Internet Explorer from Microsoft. Start with the file
+GUIDE.HTM. If you don't have a www browser, you can either ask a
+friend who has such a browser to print the documentation for you,
+or you can purchase the printed User Guide from our company. </p>
+
+<p>Directories TTEST and MTEST contain test programs for all
+patterns currently available from the library. These programs can
+verify that your installation is complete and correct, but they
+are also invaluable as examples and provide guidance when you are
+learning how to use a new class. To start a complete regression
+test, type <em>regr</em> in either directory. </p>
+
+<p>If you run into difficulties, feel free to contact us:</p>
+
+<ul>
+    <li>email (prefered): <a href="mailto:info@codefarms.com">info@codefarms.com</a>
+    </li>
+    <li>fax: 613-838-3316 </li>
+    <li>telephone (please use only as last resort): 613-838-4829 </li>
+    <li>Our address is: Code Farms Inc., 7214 Jock Trail,
+        Richmond, Ontario, K0A 2Z0 Canada</li>
+    <li>For information on other products and services, see: <a
+        href="http://www.CodeFarms.com">http://www.CodeFarms.com</a>
+    </li>
+</ul>
+
+<hr>
+
+<p><a href="chap2.htm">continue ...</a></p>
+
+<p><a href="index.htm">root of the User Guide ...</a></p>
+</body>
+</html>

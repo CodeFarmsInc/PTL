@@ -1,0 +1,16 @@
+echo " ------- aggregat -------- "
+../envir/mgrtest aggregat
+echo " ------- array -------- "
+../envir/mgrtest array
+echo " ------- collecti -------- "
+../envir/mgrtest collecti
+echo " ------- composit -------- "
+../envir/mgrtest composit
+echo " ------- flyweigh -------- "
+../envir/mgrtest flyweigh
+echo " ------- ptrarray -------- "
+../envir/mgrtest ptrarray
+echo " ------- arraycon -------- "
+../envir/mgrtest arraycon
+echo " ------- fsm -------- "
+../envir/mgrtest fsm

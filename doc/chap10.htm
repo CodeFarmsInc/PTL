@@ -1,0 +1,114 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+
+<head>
+<meta http-equiv="Content-Type"
+content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 2.0">
+<title>Pattern Template Library  -  Chap.10</title>
+</head>
+
+<body bgcolor="#FFFFFF">
+
+<h2>Chap.10: ERROR HANDLING</h2>
+
+<hr>
+
+<p>There are two types of error situations that can happen in
+this library:</p>
+
+<ol>
+    <li>The library detects that the requested operation would
+        corrupt data integrity. A warning message is issued, and
+        the operation is bypassed (not executed). For example,
+        this happens if you want to insert object A into a
+        Collection before object B, but B is not in any
+        Collection. </li>
+    <li>The library detects data which is corrupted beyond
+        repair, and the program will crash sooner or later. An
+        error message is issued, and the library throws exception
+        using class PTLerrorHandler. For example, this happens if
+        you attempt to destroy and object which still
+        participates in a Collection or if, in an Agregate,
+        object A is one of the children under parent B, but the
+        parent pointer on A points to C, where C!=B.</li>
+</ol>
+
+<p>Each application has different requirements and style of error
+handling. For this reason, the library has centralized error
+handling which permits to customize it by changing just a few
+lines in file LIB/MGR.H. The code here speaks better than a long
+explanation:</p>
+
+<pre>// ---------- ERROR HANDLING FOR THE ENTIRE LIBRARY -----------------
+#include &lt;iostream.h&gt;
+
+class PTLerrorHandler{
+public:
+    char *msg;
+    void *ptr;
+    PTLerrorHandler(char *m,void *p){msg=m; ptr=p;}
+};
+
+void PTLerror(char *msg,void *ptr){
+    cout &lt;&lt; &quot;ERROR: &quot; &lt;&lt; msg &lt;&lt; &quot; &quot; &lt;&lt; (unsigned long)ptr &lt;&lt; &quot;\n&quot;;
+    cout.flush();
+    throw PTLerrorHandler(msg,ptr);
+}
+
+void PTLwarning(char *msg,void *ptr){
+    cout &lt;&lt; &quot;WARNING: &quot; &lt;&lt; msg &lt;&lt; &quot; &quot; &lt;&lt; (unsigned long)ptr &lt;&lt; &quot;\n&quot;;
+    cout.flush();
+}
+</pre>
+
+<p>In case of any error, the library calls either <em>PTLerror()</em>
+or <em>PTLwarning()</em>, and these functions print the given
+message and the given address or other value. For example:</p>
+
+<pre>MyObject *p; int i;
+   ...
+PTLerror(&quot;destroying object which participates in a collection, obj=&quot;,p);
+   ...
+PTLwarning(&quot;index already occupied, i=&quot;,(void*)i);</pre>
+
+<p>Function <em>PTLerror() </em>throws exception:</p>
+
+<pre>           throw PTLerrorHandler(msg,ptr);</pre>
+
+<p>It depends just on you how you will handle library errors. You
+can use the mechanism supplied with the library and catch the
+exceptions:</p>
+
+<pre>try {
+   ... your normal code
+}
+catch(PTLerrorHandler&amp; eh){
+   ... eh.msg has the message
+   ... eh.ptr has the pointer or other value
+}</pre>
+
+<p>If you don't want to abort the run even in case of a serious
+error, comment out the line which throws the exception. If you
+want the messages on a different I/O stream, replace <em>cout </em>in
+functions<em> PTLerror() </em>and <em>PTLwarning(). </em>If you
+don't want to see any message, comment out the two lines that
+print them. If you want something completely different, supply
+new source for functions <em>PTLerror()</em> and<em> PTLwarning()</em>.</p>
+
+<p>Note that some compilers require special option for <em>stack
+unwinding</em>. For example the Microsoft Visual C++ must be
+compiled with <em>cl -GX .</em>.., while the Borland C++ compiler
+does not require any special option. If you plan to catch the
+exceptions, this option must be added to the appropriate file
+PTL\ENVIR\*.cmp, for example file <em>msft.cmp.</em></p>
+
+<hr>
+
+<p>This is the end of the last Chapter.</p>
+
+<p><a href="refer.htm">references ...</a></p>
+
+<p><a href="index.htm">the root of the User Guide ...</a></p>
+</body>
+</html>

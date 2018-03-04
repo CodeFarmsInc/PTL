@@ -1,0 +1,67 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+
+<head>
+<meta http-equiv="Content-Type"
+content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 2.0">
+<title>Pattern Template Library - Chap.9</title>
+</head>
+
+<body bgcolor="#FFFFFF">
+
+<h2>Chap.9: MISSING PATTERNS</h2>
+
+<hr>
+
+<p>Reference <a href="refer.htm">[4]</a> lists several structural
+patterns which are simple inheritance trees applied to some
+particular situations. Since there is no other structure involved
+(collections or pointers), these patterns are not good candidates
+for this library. When working with these patterns, the main work
+is in setting up application-specific functions, and this work
+must be done by the user whether or not there is a library class.</p>
+
+<p>For this reason, the following patterns are not included in
+this library: <strong>Adapter, Bridge.</strong></p>
+
+<p>Another reason for not including some other patterns is that
+they can be easily implemented with other patterns already
+available. For example, from the structural point of view, <strong>Decorator</strong>
+is just Composite except for one or a few additional subclasses:</p>
+
+<pre>  <img src="g16.jpg" width="650" height="450"> </pre>
+
+<p>When you need a Decorator, simply use Composite from the
+library, and derive classes D and E from C.</p>
+
+<p>Our plan is to gradually expand this library depending on user
+needs and requirements. Probably, we will introduce the following
+classes in near future:</p>
+
+<ul>
+    <li><strong>CONTAINER</strong><br>
+        will be derived from <em>PtrArray&lt;&gt;</em>, and
+        provide one class for all the containers typically
+        provided in other libraries: collection, ordered
+        collection, vector, set, bag, etc. It will also have an
+        iterator which is not provided for Array and PtrArray.</li>
+    <li><strong>TREE</strong><br>
+        will be derived from <em>Aggregate&lt;&gt;,</em> with
+        iterators for depthFirst and breadthFirst search. The
+        search function will execute a user coded function for
+        each object in the tree, and abort when this function
+        returns 1.</li>
+    <li><strong>MANY_TO_MANY RELATION</strong><br>
+        will use 3 classes: Source, Relation, and Target, with
+        aggregates between Source and Relations, and between
+        Target and Relation.</li>
+</ul>
+
+<hr>
+
+<p><a href="chap10.htm">continue ...</a></p>
+
+<p><a href="index.htm">to the root of the User Guide ...</a></p>
+</body>
+</html>

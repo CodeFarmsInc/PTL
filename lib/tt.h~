@@ -1,0 +1,35 @@
+template<class P,class C,int i> class CompositeChild :
+                               public CollectionChild<P,C,i>{
+};
+
+template<class P,class C, int i> class CompositeParent :
+                                     public CollectionParent<P,C,i>{
+};
+
+template<class P,class C, int i> class Composite :
+                               public Collection<P,C,i>{
+    // all methods of Collection are inherited
+};
+
+#define CompositeInherit1(id,par,chi,i) \
+    public chi, public CompositeParent<par,chi,i>
+#define CompositeMember1(id,par,chi,i)      \
+    virtual int isComposite(Composite<par,chi,i> *c){c=c; return 1;} 
+#define CompositeInherit2(id,par,chi,i) public CompositeChild<par,chi,i>
+#define CompositeMember2(id,par,chi,i)     \
+    virtual int isComposite(Composite<par,chi,i> *c){c=c; return 0;} 
+
+===============================
+
+#define pattern_Graphic \
+  CollectionInherit2(coll,Root,Graphic,0),\
+  CompositeInherit2(comp,Picture,Graphic,1) { \
+  CollectionMember2(coll,Root,Graphic,0)\
+  CompositeMember2(comp,Picture,Graphic,1) PTL_COMMENT 
+
+#define pattern_Picture \
+  CompositeInherit1(comp,Picture,Graphic,1) { \
+  CompositeMember1(comp,Picture,Graphic,1) PTL_COMMENT 
+===============================
+#define Pattern(A) pattern_##A
+#define PTL_COMMENT /##/

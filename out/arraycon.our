@@ -1,0 +1,37 @@
+first array size=8 used=8
+after push  size=16 used=10
+A=g
+after pop  size=16 used=9
+after reduce size=9 used=9
+after cut    size=5 used=5
+i=0 A=p
+i=1 A=q
+i=2 A=r
+i=3 A=s
+i=4 A=t
+array mArrOfB,  size=12 used=11
+after grow size=101 used=11
+i=0 B=0
+i=1 B=0
+i=2 B=22
+i=3 B=0
+i=4 B=4
+i=5 B=0
+i=6 B=6
+i=7 B=0
+i=8 B=8
+i=9 B=0
+i=10 B=10
+
+after sorting
+i=0 B=0
+i=1 B=0
+i=2 B=0
+i=3 B=0
+i=4 B=0
+i=5 B=0
+i=6 B=4
+i=7 B=6
+i=8 B=8
+i=9 B=10
+i=10 B=22

@@ -1,0 +1,6 @@
+cp gnu.cmp compile
+cp gnu.tmp tmptest
+cp unix.mgr mgrtest
+cp gnu.env ../lib/environ.h
+cd ../mgr
+all

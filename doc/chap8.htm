@@ -1,0 +1,148 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+
+<head>
+<meta http-equiv="Content-Type"
+content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 2.0">
+<title>Pattern Template Library  -  Chap.8</title>
+</head>
+
+<body bgcolor="#FFFFFF">
+
+<h2>Chap.8: ADDING NEW PATTERNS TO THE LIBRARY</h2>
+
+<hr>
+
+<p>Internally, the library provides plenty of examples of how you
+can derive a new pattern from the existing ones. For example,
+Aggregate and Composite are derived from Collection; Array,
+PtrArray, Flyweight are derived from ArrayContainer; and FSM uses
+internally five ArrayContainers. Each pattern may require a
+different coding technique, but if you want to fit into the
+framework of this library, and especially if you plan to use the
+Template Manager, we suggest that you follow the format of the
+existing *.h files, paying attention to the following details:</p>
+
+<p>(a) Enclose each file with <em>#ifndef </em>statements so that
+multiple includes of the same file do not cause compilation
+errors. For example:</p>
+
+<pre>       #ifndef AGGREGATE_USED
+         .... all code ....
+       #endif // AGGREGATE_USED
+       #define AGGREGATE_USED</pre>
+
+<p>(b) Include patterns which will be used as a part of your new
+pattern. For example:</p>
+
+<pre>       #include &lt;collecti.h&gt;
+       #include &lt;arraycon.h&gt;</pre>
+
+<p>(c) In the comment part, explain the parameters your new
+pattern/template is using, and also what classes must be
+inherited by the application. For example: </p>
+
+<pre>       // ---------- aggregat.h --------------------
+       // pattern Aggregate&lt;P,C,i&gt;
+       // where P is the parent class (for example Department),
+       //       C is the child class (for example Employee)
+       //       i is an integer index, usually 0
+       // --------------------------------------------------
+       // Example:
+       // Class Employee : public AggregateChild&lt;Department,Employee,0&gt; {
+       //     ...
+       //};
+       // Class Department : public AggregateParent&lt;Department,Employee,0&gt; {
+       //     ...
+       //};
+       // --------------------------------------------------</pre>
+
+<p>(d) Replace long templates by shorter symbols - it will make
+the code more readable. For example:</p>
+
+<pre>       #define pType AggregateParent&lt;P,C,i&gt;
+       #define cType AggregateChild&lt;P,C,i&gt;
+       #define iType AggregateIterator&lt;P,C,i&gt;
+       #define oType Aggregate&lt;P,C,i&gt;
+       </pre>
+
+<pre>       #define pTypeC CollectionParent&lt;P,C,i&gt;
+       #define cTypeC CollectionChild&lt;P,C,i&gt;
+       #define iTypeC CollectionIterator&lt;P,C,i&gt;
+       #define oTypeC Collection&lt;P,C,i&gt;       </pre>
+
+<p>(e) Code the class definition and the implementation of the
+template methods in a single file, including the part which (if
+this was not a template) would be in the *.cpp file:</p>
+
+<pre>       // part equivalent to *.h file
+       class XYZ {
+          ...
+           void prt();
+       };</pre>
+
+<pre>       // part equivalent to *.cpp file
+       void XYZ::prt(){ 
+          ...
+       }
+       ...
+</pre>
+
+<p>(f) Provide hooks for the Template Manager. To understand how
+this works, consider the following. If your application declares <em>pattern
+Aggregate&lt;Department,Employee,0&gt; myAggr;</em> class
+Department is given No.1, and class Employee is given No.2. As a
+result, the statement</p>
+
+<pre>       class Department : Pattern(Department) {
+           ... whatever</pre>
+
+<p>will be translated into</p>
+
+<pre>       class Department : 
+                   AggregateInherit1(myAggr,Department,Employee,0){
+           AggregateMember1(myAggr,Department,Employee,0)
+           ... whatever</pre>
+
+<p>This permits you to arrange that the Template Manager
+transparently implements inheritance, but can also add members or
+functions to the class. For example, the setup for pattern
+Aggregate which is based on class Collection looks like this:</p>
+
+<pre>       #ifdef TEMPLATE_MANAGER
+       // Include sections - needed only when the Template Manager is used
+       #define AggregateInherit1(id,par,chi,i) \
+                              public AggregateParent&lt;par,chi,i&gt;
+       #define AggregateMember1(id,par,chi,i)
+       #define AggregateInherit2(id,par,chi,i) \ 
+                              public AggregateChild&lt;par,chi,i&gt;
+       #define AggregateMember2(id,par,chi,i) 
+       // --------------------------------------------------
+       #endif  // TEMPLATE_MANAGER</pre>
+
+<p>(g) Cancel the shorthand for your classes; otherwise, there
+could be a conflict with other patterns:</p>
+
+<pre>       #undef pType
+       #undef cType
+       #undef iType
+       #undef oType
+       #undef pTypeC
+       #undef cTypeC
+       #undef iTypeC
+       #undef oTypeC</pre>
+
+<p>(h) Write a test program for your new class. Test it both with
+and without the Template Manager, place the two copies (there
+should be only minor differences due to the style of using the
+patterns) in directories MTEST and TTEST, and the correct result
+in the directory OUT.</p>
+
+<hr>
+
+<p><a href="chap9.htm">continue ...</a></p>
+
+<p><a href="index.htm">to the root of the User Guide ...</a></p>
+</body>
+</html>

@@ -1,0 +1,95 @@
+// ----------------------------------------------------------------------
+// This test is similar to array.cpp, except that both arrays
+// are self standing arrays, one as a member of C, the other an automatic
+// object in main().
+// ----------------------------------------------------------------------
+#include <iostream.h>
+#include <arraycon.h>
+
+class A {
+    char mChar;
+public:
+    A(){mChar=' ';}
+    A(char c){mChar=c;}
+    void set(char c){mChar=c;}
+    void prt(){cout << "A=" << mChar << "\n";}
+};
+class B {
+    int mInt;
+public:
+    B(){mInt=0;}
+    B(int i){mInt=i;}
+    void prt(){cout << "B=" << mInt << "\n";}
+    static int cmp(const void *v1,const void *v2){ // compare for sort
+                         return ((B*)v1)->mInt - ((B*)v2)->mInt;}
+};
+
+class C {
+public:
+    ArrayContainer<B> mArrOfB;
+    C():mArrOfB(3,0){}
+};
+                                         // holder of the two arrays
+
+int main(void){
+    ArrayContainer<A> arrOfA;
+    unsigned int i;
+    unsigned char q;
+    A* pA;
+    B* pB;
+    C c; // holder of array mArrOfB
+
+    // create some initial array with arbitrarily initialized A objects
+    for(i=0, q='p'; i<8; i++, q++){
+        pA=new A(q); arrOfA[i]=(*pA);
+    }
+    cout << "first array size=" << arrOfA.size() << " used=" 
+                                                  << arrOfA.used() <<"\n";
+    // push in two new objects, then pop one
+    pA=new A('f'); arrOfA.push(pA);
+    pA=new A('g'); arrOfA.push(pA);
+    cout << "after push  size=" << arrOfA.size() << " used=" 
+                                                  << arrOfA.used() <<"\n";
+    arrOfA.pop()->prt();
+    cout << "after pop  size=" << arrOfA.size() << " used=" 
+                                                  << arrOfA.used() <<"\n";
+
+    // test different ways of changing the size of the array
+    arrOfA.reduce();
+    cout << "after reduce size=" << arrOfA.size() << " used=" 
+                                                   << arrOfA.used() <<"\n";
+    arrOfA.cut(4);
+    cout << "after cut    size=" << arrOfA.size() << " used=" 
+                                                   << arrOfA.used() <<"\n";
+
+    // print the array just to see it is still as it should be
+    for(i=0;i<arrOfA.used();i++){ 
+        cout << "i=" << i << " "; arrOfA[i].prt();
+    }
+
+    // experiment with the second array
+    for(i=4; i<=10; i=i+2){
+        pB=new B(i); c.mArrOfB[i]=(*pB);
+    }
+    cout << "array mArrOfB,  size=" << c.mArrOfB.size() << " used=" 
+                                                << c.mArrOfB.used() <<"\n";
+    c.mArrOfB.grow(100);
+    cout << "after grow size=" << c.mArrOfB.size() << " used=" 
+                                                << c.mArrOfB.used() <<"\n";
+    pB=new B(22); c.mArrOfB.insert(2,pB);
+    c.mArrOfB.remove(3);
+
+    // print the array
+    for(i=0; i<c.mArrOfB.used(); i++){
+        cout << "i=" << i << " "; c.mArrOfB[i].prt();
+    }
+
+    // sort the array  and print it
+    c.mArrOfB.sort(B::cmp);
+    cout << "\nafter sorting\n";
+    for(i=0; i<c.mArrOfB.used(); i++){
+        cout << "i=" << i << " "; c.mArrOfB[i].prt();
+    }
+    
+    return(0);
+}

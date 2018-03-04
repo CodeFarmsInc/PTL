@@ -1,0 +1,20 @@
+
+
+Composite:
+   Picture:111
+Picture:111
+   Text:TEXT1   Line:1,1 11,11   Picture:222
+Picture:222
+   Text:TEXT2   Picture:333
+Picture:333
+   Text:TEXT3   Line:3,3 33,33
+
+Collection:
+   Text:TEXT3   Text:TEXT2   Text:TEXT1   Line:3,3 33,33
+   Line:2,2 22,22   Line:1,1 11,11   Picture:333   Picture:111
+
+Search for line starting at (3,3):
+   Line:3,3 33,33
+
+Search for line starting at (2,2):
+NOT ANY

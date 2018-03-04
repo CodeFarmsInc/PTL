@@ -1,0 +1,996 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+
+<head>
+<meta http-equiv="Content-Type"
+content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 2.0">
+<title>Pattern Template Library - Chap.6</title>
+</head>
+
+<body bgcolor="#FFFFFF">
+
+<h2>Chap.6: AVAILABLE CLASSES</h2>
+
+<hr>
+
+<p>Note that for each class, the directories PTL/TTEST and
+PTL/MTEST provide a program which demonstrates the use of the
+class, and verifies that it works correctly. Tests in TTEST have
+explicitely coded multiple inheritance, tests in MTEST use the
+Template Manager. All iterators are smart iterators that permit
+one to remove() and delete() objects while traversing the data.</p>
+
+<p>You can easily add your own classes to the library - see <a
+href="chap9.htm">Chap.9</a>. When you receive the library, it
+will include the following classes:</p>
+
+<pre> <a href="chap6.htm#6.1">6.1</a>  COLLECTION or LINKED LIST              (file collecti.h)
+ <a href="chap6.htm#6.2">6.2</a>  AGGREGATE, HIERARCHY, or ONE-TO-MANY   (file aggregat.h)
+ <a href="chap6.htm#6.3">6.3</a>  ARRAY CONTAINER or BASIC DYNAMIC ARRAY (file arraycon.h)
+ <a href="chap6.htm#6.4">6.4</a>  ARRAY attached to an application class (file array.h)
+ <a href="chap6.htm#6.5">6.5</a>  POINTER ARRAY                          (file ptrarray.h)
+ <a href="chap6.htm#6.6">6.6</a>  pattern COMPOSITE                      (file composit.h)
+ <a href="chap6.htm#6.7">6.7</a>  pattern FLYWEIGHT                      (file flyweigh.h)
+ <a href="chap6.htm#6.8">6.8</a>  FINITE STATE MACHINE                   (file fsm.h)</pre>
+
+<hr>
+
+<h3><a name="6.1"></a>(6.1) COLLECTION or LINKED LIST (file
+collecti.h)</h3>
+
+<p>In this data organization, each Parent keeps a doubly linked,
+intrusive, circular list of Children. Depending how you interpret
+this pattern, it can be used as a linked list, collection, sorted
+collection, or a set. It is one of the basic building blocks of
+numerous data structures and patterns.</p>
+
+<p><font size="4">Class diagram:</font></p>
+
+<p><font size="4"><img src="g6class.jpg" width="454" height="191"></font></p>
+
+<p><font size="4">Implementation:</font></p>
+
+<pre>   <img src="g3impl.jpg" width="650" height="362"></pre>
+
+<p>In the the following description, we will often use P for the
+Parent class (for example Department), C for the child class (for
+example Employee), and i for the integer index, which is 0 most
+of the time.</p>
+
+<p><strong>CONDITIONS FOR USING THIS PATTERN:</strong></p>
+
+<ol>
+    <li>P must be a subclass of CollectionParent&lt;P,C,i&gt;</li>
+    <li>C must be a subclass of CollectionChild&lt;P,C,i&gt;</li>
+</ol>
+
+<p>When you use the PatternManager, this happens automatically.</p>
+
+<p><font size="3"><strong>AVAILABLE METHODS:</strong></font></p>
+
+<pre>template&lt;class P,class C, int i=0&gt; class Collection {
+    ...
+public:
+    cType *head(const pType *p) const; // head of the list
+    cType *tail(const pType *p) const; // tail of the list
+    cType *next(const cType *c) const; // next on the list
+    cType *prev(const cType *c) const; // previous on the list
+    void setTail(pType *p,cType *c) const; // set c to be the tail on p
+    void setHead(pType *p,cType *c) const; // set c to be the head on p
+    void addTail(pType *p,cType *c) const; // add c as new tail under p
+    void addHead(pType *p,cType *c) const; // add c as new head under p
+    void insert(pType *p,cType *c,cType *x) const; // insert x before c
+    void append(pType *p,cType *c,cType *x) const; // append x after c
+    void remove(pType *p,cType *c) const; // remove c from under p
+    void merge(cType *s,cType *t,pType *ps,pType *pt) const; // see below
+    void merge(pType *ps,pType *pt) const; // merge pt after ps
+    void split(cType *s,cType *t,pType *ps,pType *pt) const; // see below
+    void sort(pType *p,cmpType cmp) const; // sort using C::cmp()
+    void addSorted(pType *p,cType *c,cmpType cmp) const; //add,keep sorted
+    int count(const pType* p) const; // count of items
+};</pre>
+
+<p>Situations which violate data integrity are detected.
+Examples: <em>remove(p,c)</em> or <em>setHead(p,c)</em> when c is
+not under p. For more details on error handling, see <a
+href="chap10.htm">Chap.10</a>.</p>
+
+<p>The function<em> split(s,t,ps,pt)</em> splits one collection
+into two, while the function<em> merge(s,t,ps,pt)</em> merges two
+collections into one. In both situations, two children (s and t)
+and their parents (<em>ps</em> and <em>pt</em>) are involved:</p>
+
+<p><font size="4">Merging two collections:</font></p>
+
+<p><img src="g4merge.jpg" width="531" height="437"></p>
+
+<p><font size="4">Splitting a collection:</font></p>
+
+<p><img src="g4split.jpg" width="531" height="437"></p>
+
+<p>In the case of merging, s and t must be in different
+collections. The function disconnects s and t from their next
+neighbors v and u, and connects t to v, and s to u - see the
+figure. The new collection is under ps, and pt is empty.</p>
+
+<p>In the case of splitting, both s and t must be originally
+under ps, and pt must be an empty Parent. The function again
+disconnects v and t from their next neighbors v and u, and
+connects t to v and s to u. The result is two collections: one
+which contains s and u and remains under ps, and one which
+contains v and t and is assigned to pt.</p>
+
+<p>In either case, if s= =t, no action is taken. It may interest
+you that, internally, a single algorithm provides both services.
+To make the interface easy to use, this general function is
+hidden behind merge() and split().</p>
+
+<p>There is also a second function for merging two collections, <em>void
+merge(pType *ps,pType *pt);</em> which is the most frequently
+occuring situation.</p>
+
+<p><strong>ORDER OF THE ITEMS IN THE COLLECTION:</strong></p>
+
+<p>When you add items using <em>addTail()</em>, the iterator will
+return them in the same order (FIFO queue). When you add items
+using <em>addHead()</em>, the items will be stored in the reverse
+order (LIFO queue). Function <em>sort()</em> sorts the collection
+by a fast merging algorithm, which has a performance comparable
+to <em>qsort()</em> for arrays. The sort is controlled by the
+compare function <em>int C::cmp(C *c1, C *c2)</em>, which is
+similar to the compare function required for <em>qsort()</em>.
+The result of <em>cmp(c1,c2)</em> must be &lt; 0 when c1&gt;c2,
+must be &gt; 0 when c1&gt;c2, and must be 0 when they are equal.
+We recommend that if you need sorting, you should make this
+function a static member function of class C.</p>
+
+<p>Function <em>addSorted()</em> adds an item to the collection
+so that its order is maintained. Since Collection is based on a
+linked list, this operation is relatively inefficient (i.e., it
+must traverse the list). Rather then using repeatedly <em>addSorted()</em>,
+it is much faster to use <em>addTail()</em> or <em>addHead()</em>
+and then sort the collection by calling <em>sort()</em>.</p>
+
+<p>Function <em>count()</em> returns the number of Children under
+Parent p. It is not efficient to store this value on each parent;
+therefore this value is calculated every time you ask for it, and
+it requires a full traversal of the list.</p>
+
+<p><strong>ITERATOR:</strong></p>
+
+<pre>template&lt;class P,class C, int i=0&gt; class CollectionIterator {
+    ...
+public:
+    CollectionIterator();     // creates an iterator
+    C* begin(const pType *p); // starts the forward iteration (ITERATE)
+    C* end(const pType *p);   // starts the reverse iteration (RETRACE)
+    C* const operator++();    // next object in the forward direction
+    C* const operator--();    // next object in the reverse direction
+};</pre>
+
+<p>For examples of using this data structure, see <em>ttest/collecti.cpp
+</em>and <em>mtest/collecti.cpp</em>. The correct result is in <em>ptl/out/collecti.out.</em></p>
+
+<hr>
+
+<h3><a name="6.2"></a>(6.2) AGGREGATE or ONE_TO_MANY (file
+aggregat.h)</h3>
+
+<p>This data organization is sometimes called a ONE_TO_MANY
+relation. For each Parent, it keeps a doubly linked, intrusive,
+circular list of Children. This pattern is very similar to the
+COLLECTION, except that each Child also keeps a pointer to its
+Parent. Internally, the class Aggregate&lt;&gt; is derived from
+class Collection&lt;&gt;. The AGGREGATE represents a hierarchy of
+objects, and it is one of the most useful and most frequently
+used data structures. Examples: Department and Employees,
+CircuitBlock and its Terminals, Account and its Transactions.</p>
+
+<p><font size="4">Class diagram:</font></p>
+
+<p><font size="4"><img src="g1class.jpg" width="362" height="268"></font></p>
+
+<p><font size="4">Implementation:</font></p>
+
+<p><font size="4"><img src="g1impl.jpg" width="650" height="417"></font></p>
+
+<p>In the the following description, we will often use P for the
+Parent class (for example, Department), C for the child class
+(for example, Employee), and i for the integer indew, which is 0
+most of the time.</p>
+
+<p><strong>CONDITIONS FOR USING THIS PATTERN:</strong></p>
+
+<ol>
+    <li>P must be a subclass of CollectionParent&lt;P,C,i&gt;</li>
+    <li>C must be a subclass of CollectionChild&lt;P,C,i&gt;</li>
+</ol>
+
+<p>When you use the PatternManager, this happens automatically.</p>
+
+<p><strong>AVAILABLE METHODS:</strong></p>
+
+<p>Note that even though Aggregate is quite similar to
+Collection, the syntax of some functions is different. The reason
+is that, in Aggregate, children always know their parents,
+therefore the parents do not have to be given in operations like <em>insert()</em>
+or <em>remove()</em>.</p>
+
+<pre>template&lt;class P,class C, int i=0&gt; class Aggregate {
+    ...
+public:
+    // methods which are the same as for Collection
+    cType *head(const pType *p) const; // head of the list
+    cType *tail(const pType *p) const; // tail of the list
+    cType *next(const cType *c) const; // next on the list
+    cType *prev(const cType *c) const; // previous on the list
+    void addTail(pType *p,cType *c) const; // add c as the new tail under p
+    void addHead(pType *p,cType *c) const; // add c as the new head under p
+    void setTail(cType* c) const; // set c to be the tail on p
+    void setHead(cType* c) const; // set c to be the head on p
+    void merge(pType *ps,pType *pt) const; // merge pt after ps
+    void addSorted(pType *p,cType *c,cmpType cmp) const; // add, keep sorted
+    void sort(pType *p,cmpType cmp) const; // sort collection using C::cmp()
+    int count(const pType* p) const; // count of items
+ </pre>
+
+<pre>    // methods which are different from Collection
+    pType *parent(cType *c) const; // the parent of c
+    void insert(cType *c,cType *x) const; // insert x before c,under parent of c
+    void append(cType *c,cType *x) const; // append x after c, under parent of c
+    void remove(cType *c) const;          // removes c from its parent
+    void merge(cType *s,cType *t) const;            // - see the text
+    void split(cType *s,cType *t,pType *pt) const;  // - see the text
+            // splits aggregate into two, pt must be a new, empty parent
+};</pre>
+
+<p>For the description of the <em>merge()</em> and <em>split()</em>
+operations, and ordering of the items in the aggregate, see the
+equivalent functions in Collection, <a href="#6.1">in Section 6.1</a>.
+For Aggregate, the parents do not have to be given in some
+situations.</p>
+
+<p>The iterator is exactly the same as for the Collection, and is
+also internally implemented like it: </p>
+
+<pre>template&lt;class P,class C, int i=0&gt; class AggregateIterator :
+                               public CollectionIterator{};</pre>
+
+<p>The interface therefore appears to be like the following:</p>
+
+<pre>template&lt;class P,class C, int i=0&gt; class AggregateIterator {
+    ...
+public:
+    // all same as for Collection
+};</pre>
+
+<p>For examples of using this data structure, see <em>ttest/aggregat.cpp</em>
+and <em>mtest/aggregat.cpp.</em> The correct result is in <em>ptl/out/aggregat.out.</em></p>
+
+<hr>
+
+<h3><a name="6.3"></a>(6.3) ARRAY CONTAINER or BASIC DYNAMIC
+ARRAY (arraycon.h)</h3>
+
+<p>This is a dynamic array in its classical (standard) template
+form. It is not implemented as a pattern: the data and all
+functions that control it are in the same class. It has been
+included for completeness, and also because we will need it for
+some more sophisticated array implementations.</p>
+
+<p>This array does many things; in contrast to STL and other
+libraries it is centered on implementation, and it lets YOU to do
+what you want. You can control its order, sort it, use it as a
+collection or array of pointers or as a stack, and many other
+things.</p>
+
+<p>This class keeps an array of objects, which you can access
+with the operator[] as if it was a real array. The array starts
+with a certain size (either default or specified by the
+constructor), and as you access it, it automatically increases
+its size as needed. You can also control the size directly by
+certain commands. </p>
+
+<p>Normally, when a bigger size is needed, the array multiplies
+the current size by 2 until a sufficient size is reached. If you
+know the required size of the array, you can avoid excessive
+allocation by specifying it in the constructor, by calling
+grow(maxIndex), or accessing it like: <em>x=myArray[maxIndex];</em></p>
+
+<p>The array can be uninitialized, initialized to 0, or blank.
+This is applied not only to the original, starting array, but
+also to its unused portion as the array grows. You can specify
+the initialization method in one of the constructors.</p>
+
+<p><font size="4">Class diagram:</font></p>
+
+<pre>   <img src="g5class.jpg" width="512" height="228"></pre>
+
+<p><font size="4">Implementation:</font></p>
+
+<p><img src="g6impl.jpg" width="468" height="306"></p>
+
+<p>where size is the currently allocated size of the array, and
+used is the number of items in the used part of the array. For
+example, if you accessed indexes 2,3, and 9, you will have
+used=10, based on the highest used index=9. Even though you never
+accessed items 0,1, etc., your current range is 0-9, therefore
+the array has 10 items.</p>
+
+<p>In the its current form, we did not provide iterators, because
+they seems unnecessary. You can traverse the used part of the
+array like this:</p>
+
+<pre><font size="3" face="Courier New">for(i=0; i&lt;myArray.used(); i++){ ...=myArray[i];}</font></pre>
+
+<p>or you can traverse any part without worrying about the size
+and allocation like this: </p>
+
+<pre><font size="3" face="Courier New">for(i=0; i&lt;25000; i++){ myArray[i]=...;}</font></pre>
+
+<p>Sorting is based on <em>qsort,</em> and expects the same style
+of compare function. We recommend that you code this function as
+a static function on the class of the object that is stored in
+the array. See function <em>B::cmp() </em>in the test program <em>ttest/arraycon.cpp.</em></p>
+
+<p>When working with an array of pointers, declare it like this:</p>
+
+<pre>    class A;
+    Array&lt;A*&gt; myArray;
+</pre>
+
+<p><strong>CONDITIONS FOR USING THIS PATTERN:</strong></p>
+
+<p>This pattern does not involve inheritance. There is not need
+to use the <em>Pattern()</em> statement when you run with the
+Template Manager.</p>
+
+<p><strong>AVAILABLE METHODS:</strong></p>
+
+<pre>template&lt;class T&gt; class ArrayContainer {
+typedef int (*cmpType)(const void *, const void *);
+    ...
+public:
+    ArrayContainer(); // default starts with size=8, no initialization
+    ArrayContainer(unsigned int const startSize,unsigned int const ini);
+                      // user-specified starting size and initialization 
+                      // ini=0 no initialization,ini=1 by 0,ini=2 by blank
+    virtual ~ArrayContainer();
+    unsigned int size(void) const; // returns the currently allocated size
+    unsigned int used(void) const; // returns the currently used range
+    T&amp; operator[](const unsigned int k); // normal access to the array
+    void remove(const unsigned int k);   // remove, shrink remaining part
+    void fastRemove(const unsigned int k);  // without maintaining order
+    void insert(const unsigned int k,T *t); // insert, expand remainder
+    void push(T* e); // add e to the end as if a stack, increment 'used'
+    T* pop(void);    // return the last item, decrement 'used'
+    int reduce();    // reduce the array to its used size
+    int cut(const unsigned int k);     // cut the size up to index k
+    int grow(const unsigned int k);    // grow to accomodate index k
+    void sort(cmpType cmp);            // sort the array, using qsort
+};
+</pre>
+
+<hr>
+
+<h3><a name="6.4"></a>(6.4) ARRAY attached to an application
+class (file array.h)</h3>
+
+<p>The dynamic array is one of the basic data organizations, like
+the linked list. Many data structures can be built with dynamic
+arrays. For example, most container class libraries such as STL,
+RogueWave tools.h++, and Microsoft MCF extensively use dynamic
+arrays.</p>
+
+<p><font size="4">Class diagram:</font></p>
+
+<p><img src="g6class.jpg" width="454" height="191"></p>
+
+<p><font size="4">Implementation:</font></p>
+
+<p><img src="g6impl.jpg" width="468" height="306"></p>
+
+<p>Class <em>Array&lt;H,T,i&gt;</em> is essentially <em>ArrayContainer&lt;T&gt;
+</em>which was described in the previous section, but with the
+style of interface that fits intrusive data structures and
+patterns such as <em>Collection&lt;&gt;</em> or <em>Aggregate&lt;&gt;.</em>
+The array is attached to application class H, contains an array
+of Ts, and is managed by the manager class <em>Array&lt;H,T,i&gt;</em>.
+For the internal organization, look at class <em>ArrayContainer&lt;T&gt;</em>.</p>
+
+<p>The functions that control this data organization are similar
+to those available for <em>ArrayContainer&lt;&gt;</em>, except
+that the holder object must always be given. For example, to
+traverse the used part of the array, you do this:</p>
+
+<pre>    class Holder;
+    class Element;
+    Holder *hp;
+    Element *e;
+    Array&lt;Holder,Element&gt; myArray; // default i=0 not needed
+    ...
+    for(i=0; i&lt;myArray.used(h); i++) { 
+        e = myArray.array(h)[i];
+        ...
+        myArray.array(h)[i] = e;
+    }</pre>
+
+<p>Function <em>initial()</em> sets up the default starting size
+and initialization for all arrays within the class <em>Array&lt;H,T,i&gt;</em>.
+The array grows in multiples of 2 whenever operator[] or push()
+access index which overflows the existing size. However, even
+when a big jump in size occurs, the new size is determined first
+and then only one allocation is performed. You can
+increase/decrease the size to a specific value using the
+functions <em>grow() </em>or <em>cut().</em></p>
+
+<p><strong>CONDITIONS FOR USING THIS PATTERN:</strong></p>
+
+<ol>
+    <li>H is a subclass of <em>ArrayHolder&lt;H,T,i&gt;</em></li>
+    <li>T is the type of the objects to store in the array</li>
+</ol>
+
+<p>For arrays of pointers, use <em>Array&lt;H,T*,i&gt;</em>, or
+even better, class <em>PtrArray&lt;H,T,i&gt;</em>.</p>
+
+<p><strong>ITERATORS</strong></p>
+
+<p>Currently none; use the for() loop as explained above.<br>
+</p>
+
+<p><strong>AVAILABLE METHODS:</strong></p>
+
+<pre>template&lt;class H,class T,int i=0&gt; class Array {
+typedef int (*cmpType)(const void *, const void *);
+    ....
+public:
+    void initial(unsigned int const startSz,unsigned int const ini);
+             // startSz=starting size for all arrays,
+             // initialization: 0=no initialization,1=by NULL,2=by blank
+    unsigned int size(H* h) const; // returns currently allocated size
+    unsigned int used(H* h) const; // returns currently used size
+    hType&amp; array(H *h); // main access to the array, to be used with []
+    void remove(H *h,const unsigned int k);
+                 // remove item in position k and shrink remaining part
+    void fastRemove(H *h,const unsigned int k);
+                 // remove item in position k without maintaining order
+    void insert(H *h,const unsigned int k,T *t);
+                 // insert t into position k and expand remaining part
+    void push(H *h,T* e); // push e to the end, increment 'used'
+    T* pop(H *h);         // pop the last item, decrement 'used'
+    int reduce(H *h);     // reduce to the currently used size
+    int cut(H *h,const unsigned int k);
+                          // cut the size to accomodate index k
+    int grow(H *h,const unsigned int k); // grow to accomodate index k
+    void sort(H *h,cmpType cmp); // sort using qsort and cmp()
+};</pre>
+
+<p><strong>Comments:</strong></p>
+
+<ul>
+    <li>Use <em>reduce()</em> if your program has reached a
+        situation where the allocated size is much bigger than
+        you need, and you want to relase the unused memory.</li>
+    <li>Be careful when using <em>cut()</em>. The function will
+        destroy any data above the specified index.<br>
+        </li>
+</ul>
+
+<p><br>
+For examples of using this data structure, see <em>ttest/array.cpp</em>
+and <em>mtest/array.cpp</em>. The correct result is in <em>ptl/out/array.out.</em><br>
+<br>
+</p>
+
+<hr>
+
+<h3><a name="6.5"></a>(6.5) POINTER ARRAY (file ptrarray.h)</h3>
+
+<p>The previous chapter described DYNAMIC ARRAY, which also can
+store simple pointers (as an array of pointers). However,
+handling a pointer array through this generic class is not as
+easy as one would wish in the case of a simple item like a
+pointer. There are certain situations in which the number of '*'
+preceding some variables and parameters becomes confusing, or in
+which you simply want to pass a pointer in/out without going
+through a complicated interface. For this purpose, the PTL
+library provides an especially tuned class called <em>PtrArray&lt;&gt;.
+</em></p>
+
+<p>PtrArray is derived from <em>Array&lt;&gt;,</em> and reuses
+many of its functions. The main differences are:</p>
+
+<ul>
+    <li>PtrArray provides functions <em>set()</em> and <em>get()</em>
+        for simple loading or retrieval of a pointer into the
+        array.</li>
+    <li>PtrArray has function <em>count()</em>, which returns the
+        number of entries that are not NULL. All access functions
+        automatically maintain this count, except for <em>operator[]</em>,
+        which allows the user to do with the object whatever
+        he/she pleases. Any call to <em>operator[]</em> makes the
+        count invalid, and on the next call to <em>count()</em>,
+        a new count is recovered by a pass over the used part of
+        the array. If you restrain yourself from using <em>operator[],</em>
+        function <em>count()</em> is very fast.</li>
+    <li>Function <em>remove()</em> returns the value of the
+        pointer which was removed.</li>
+    <li>Function <em>clean()</em> follows all the pointers
+        through the array and destroys the objects. Potential
+        crashes caused by attempting to destroy the same object
+        twice are prevented by first sorting the array.</li>
+    <li><em>push()</em> and <em>pop()</em> work with values of
+        pointers, not their addresses.</li>
+    <li>The user cannot control initialization, unless
+        explicitely invoking <em>Array::initilize()</em>.
+        Function <em>PtrArray::initialize()</em> does nothing.</li>
+</ul>
+
+<p>Internally, the PtrArray class is similar to Array, but note
+the difference in the parametrization - we have <em>PtrArray&lt;T&gt;,</em>
+but each element of the array is T*</p>
+
+<p><font size="4">Class diagram:</font></p>
+
+<p><font size="4"><img src="g6class.jpg" width="454" height="191"></font></p>
+
+<p><font size="4">Implementation:</font></p>
+
+<pre>  <img src="g8.jpg" width="538" height="320"></pre>
+
+<p><strong>CONDITIONS FOR USING THIS PATTERN:</strong></p>
+
+<p>None. When using an index other than <em>unsigned int</em>,
+for example <em>int</em> or <em>unsigned char</em>, the compiler
+automatically provides a conversion.</p>
+
+<p><strong>ALGORITHM AND TRAVERSING THE ARRAY</strong></p>
+
+<p>Size management is the same as for Array. The array is always
+initialized to NULL pointers. Traversing is the same as for
+Array. Calling <em>set(i,NULL)</em> for a position where the
+array is not NULL will decrement the count. Function <em>sort() </em>is
+the same as for Array; you may want to sort the array either by
+the value of the pointers or by some keys which are members of
+the objects to which the pointers lead.</p>
+
+<p><strong>AVAILABLE METHODS:</strong></p>
+
+<pre>template&lt;class E&gt; class PtrArray : public Array&lt;E*&gt; {
+typedef int (*cmpType)(const void *,const void *); // for sort
+    ....
+public:
+    // Methods which are new or different
+    PtrArray():Array&lt;E*&gt;();               // same size default as Array
+    PtrArray(const unsigned int s):Array&lt;E*&gt;(s); // given initial size
+    virtual ~PtrArray();                  // because ~Array() is virtual
+    unsigned int count();                 // count of pointers != NULL
+    E*&amp; operator[](const unsigned int i); // use as you would intuitively
+    E *get(const unsigned int i);         // returns pointer with index i
+    void set(const unsigned int i,E *e);  // loads pointer e into index i
+    void push(E *e);                      // pushes pointer e onto stack
+    E *pop(void);                         // pops pointer from the stack
+    void clean(void); // removes all objects to which the pointers lead
+    E* remove(const unsigned int i);  // removes pointer at i, returns it
+    void insert(const unsigned int i,E *e); // insert e to i, expand array
+    void initialize(unsigned int const code); // automatic,control disabled</pre>
+
+<pre>    // Same interface as for Array
+    int reduce(); // reduces the size to fit the useful part of the array
+    int cut(const unsigned int i);  // cuts the size to accomodate index i
+    int grow(const unsigned int i); // grows the size to accomodate index i
+    void sort(cmpType cmp);         // sorts the used part using qsort()
+    unsigned int size(void) const; // currently allocated size
+    unsigned int used(void) const; // highest index currently used}
+};
+  </pre>
+
+<p>For examples using this PtrArray, see <em>ttest/ptrarray.cpp</em>
+and <em>mtest/ptrarray.cpp</em>. The correct result is in <em>ptl/out/ptrarray.out.</em></p>
+
+<hr>
+
+<h3><a name="6.6"></a>(6.6) Pattern COMPOSITE (file composit.h)</h3>
+
+<p>COMPOSITE is one of the most powerful design patterns. It
+implements an elegant and efficient hierarchy of objects,
+applicable to uncountable practical situations. For example,
+assume that you are designing a graphical editor which handles
+Pictures, Text, and Line. Text and Line are basic units, but
+Pictures are composed of Text, Lines, and other Pictures. For
+example, a rectangle becomes a Picture which includes 4 lines,
+and a rectangle with a text in it is a Picture which includes the
+Picture representing the rectangle, plus the text.</p>
+
+<p>To apply Composite to this example, we introduce a base class
+common to all these objects, and call it Graphic, and we assign a
+collection of Graphic objects to each Picture:</p>
+
+<pre>  <img src="g9.jpg" width="650" height="306"></pre>
+
+<p>Only after you attempt to draw a pointer diagram of this
+arrangement, will you appreciate its beauty and simplicity. The
+essence of this pattern is</p>
+
+<pre>   <img src="g10.jpg" width="369" height="269"></pre>
+
+<p>and its implementation depends only on how we implement the
+collection. Our template <em>Composite&lt;class Parent, class
+Child, int i&gt;</em> is based on the intrusive collection, C<em>ollection&lt;class
+Parent, class Child, int i&gt;</em>, which is described in <a
+href="chap6.htm#6.1">Section 6.1</a>. If you prefer a
+container-based collection, you can design your own Composite
+class with <em>PtrArray&lt;&gt;</em> (see <a href="chap6.htm#6.5">Section
+6.5)</a></p>
+
+<p>For more details on this pattern, see reference<a
+href="refer.htm"> [4],</a> Chap.4 - p.163.<br>
+</p>
+
+<p><strong>CONDITIONS FOR USING THIS PATTERN:</strong></p>
+
+<ol>
+    <li>P is a subclass of both C and <em>CompositeParent&lt;P,C,i&gt;</em></li>
+    <li>C is a subclass of <em>CompositeChild&lt;P,C,i&gt;</em></li>
+    <li>The user must provide the virtual function isComposite
+        for both P and C. </li>
+</ol>
+
+<pre><font size="3" face="Courier New">virtual int P::isComposite(Composite&lt;P,C,i&gt; *c){c=c; return(1);}
+virtual int C::isComposite(Composite&lt;P,C,i&gt; *c){c=c; return(0);}</font></pre>
+
+<p>When you use the Pattern Manager, all this happens
+automatically.</p>
+
+<p><strong>AVAILABLE METHODS:</strong></p>
+
+<p>COMPOSITE is derived from COLLECTION, and has all its methods.
+ITERATE and RETRACE traverse one level of the hierarchy. There
+are additional functions which traverse the entire hierarchy:</p>
+
+<p><em>depthFirst() </em>traverses depth first and applies
+function <em>f()</em> to every node;<br>
+<em>breadthFirst() </em>traverses breadth first and applies
+function <em>f()</em> to every node;<br>
+<em>dissolve()</em> disconnects the hierarchy under the given
+parent, but does not destroy the objects.</p>
+
+<p>The function applied by these functions, <em>int
+Child::f(const void *v)</em>, permits you to pass one or more
+parameters (possibly as a structure). The function should
+normally return 0; return=1 exits the traversal loop.</p>
+
+<pre>template&lt;class P,class C, int i=0&gt; class Composite
+                           : public Collection&lt;P,C,i&gt; {
+    ...
+public:
+    // methods inherited from Collection&lt;&gt;
+    cType *head(const pType *p) const; // head of the list
+    cType *tail(const pType *p) const; // tail of the list
+    cType *next(const cType *c) const; // next on the list
+    cType *prev(const cType *c) const; // previous on the list
+    void setTail(pType *p,cType *c) const; // set c to be the tail on p
+    void setHead(pType *p,cType *c) const; // set c to be the head on p
+    void addTail(pType *p,cType *c) const; // add c as new tail under p
+    void addHead(pType *p,cType *c) const; // add c as new head under p
+    void insert(pType *p,cType *c,cType *x) const; // insert x before c
+    void append(pType *p,cType *c,cType *x) const; // append x after c
+    void remove(pType *p,cType *c) const; // remove c from under p
+    void merge(cType *s,cType *t,pType *ps,pType *pt) const; // see below
+    void merge(pType *ps,pType *pt) const; // merge pt after ps
+    void split(cType *s,cType *t,pType *ps,pType *pt) const; // see below
+    void sort(pType *p,cmpType cmp)const; // sort one level using C::cmp()
+    void addSorted(pType *p,cType *c,cmpType cmp) const; // add, keep sorted
+    int count(const pType* p) const; // count children for this parent</pre>
+
+<pre>typedef C* (*TravFun)(C*,void *);
+    // additional methods that traverse entire hierarchy
+    void dissolve(cType *c);
+    C *depthFirst(cType *c,TravFun f,void *v);
+};</pre>
+
+<p>For examples using this data structure, see <em>ttest/composit.cpp</em>
+and <em>mtest/composit.cpp</em>. The correct result is in <em>ptl/out/composit.out.</em></p>
+
+<hr>
+
+<h3><a name="6.7"></a>(6.7) Pattern FLYWEIGHT (file flyweigh.h)</h3>
+
+<p>Despite our regard for the authors of <a href="refer.htm">[4]</a>,
+we think that by using a different terminology, the description
+of this pattern on <a href="refer.htm">[4]</a> p.195, can be
+improved. We will discuss the example of this pattern presented
+in <a href="refer.htm">[4]</a>, but will introduce more
+meaningful names for the classes participating in the pattern.</p>
+
+<p>If you are designing a text editor, the text will appear on
+the screen as rows of characters, and it seems natural to store
+the data internally in the same manner. However, you must be
+careful to minimize the storage: even relatively small documents
+will include thousands of characters. The flyweight pattern
+achieves this objective with the following arrangement:</p>
+
+<pre>       <img src="g11.jpg" width="650" height="259"></pre>
+
+<p>Each Page has a collection (or a list) of Rows, and each Row
+has a collection of LightChar objects. LightChar is designed to
+take the minimum possible space, and stores the main bulk of
+text. Each LightChar refers to a HeavyChar object, which is the
+master template of the character. HeavyChar knows how to draw the
+character, its width and height, and other details. Most likely,
+you would represent each row as an array of bytes, where the
+integer stored in each byte is used as an index into the array of
+HeavyChar objects, one HeavyChar array for each available font.</p>
+
+<p>In this pattern, some of the important data are not stored but
+are calculated on the fly. For example, to draw a character,
+function <em>HeavyChar::draw() </em>needs to know the lower-left
+corner of the character, which is determined by its position in
+the row. The Row can calculate this information and pass it in
+some form (we will call this the &quot;calculated state&quot;) to
+HeavyChar. On the other hand, when calculating the position, the
+Row needs to know the width of all the characters which are
+stored in HeavyChar (we will call this the &quot;stored
+state&quot;). Pattern flyweight is this combination of
+light/heavy objects with the action of passing the states back
+and forth.</p>
+
+<pre> <img src="g12.jpg" width="650" height="306"></pre>
+
+<p>For example, in the test problem <em>ttest/flyweigh.cpp </em>or
+<em>mtest/flyweigh.cpp</em>, the calculated state also includes
+the font. The start of the text set in italics is recorded by
+character '{', and the change to the normal text by '}'.</p>
+
+<p>The challenge of designing a library class for flyweight is
+the need to cover several different situations:</p>
+
+<ul>
+    <li>LightChar may be stored not only in arrays, but in some
+        more complex data structures such as a BTree ([4] shows
+        an example of that).</li>
+    <li>LightChar may be 1, 2, 4 or more bytes, depending on how
+        many master objects we have.</li>
+    <li>Handling multiple Flyweights for the same set of classes
+        must be easy. For example, multiple fonts may be
+        implemented as multiple Flyweights.</li>
+</ul>
+
+<p>For this reason, our Flyweight has the following organization,
+which does not include an equivalent of class LightChar. It is
+simply assumed to be an integer of general size, and the size of
+integers it keeps depends on class Keeper (equivalent of Row),
+and whether they form an array, tree, or some other data
+structure.</p>
+
+<pre>   <img src="g13.jpg" width="650" height="450"></pre>
+
+<p>Note that <em>HeavyWeight::getFlyweightState()</em> returns
+the StoredState, while <em>Keeper::getFlyweightState()</em>
+returns the CalculatedState. Keeper corresponds to Row from the
+previous example, and HeavyWeight corresponds to HeavyChar.
+StoredState and CalculatedState have the same meaning as before.
+Flyweight is the class representing the pattern itself, and it
+also keeps the array of HeavyWeights. As explained above, there
+is no equivalent of LightChar, which is assumed to be a general
+integer.</p>
+
+<p>Function <em>fun(k,fi,kp)</em> is an essential part of this
+pattern, because classes Keeper and HeavyWeight may communicate
+only through class Flyweight. For more detailed description, see
+below - <a href="chap6.htm#avail">AVAILABLE METHODS</a>. </p>
+
+<p><strong>CONDITIONS FOR USING THIS PATTERN:</strong></p>
+
+<ul>
+    <li>Class Keeper must be derived from <em>FlyweightKeeper&lt;Keeper,HeavyWeight,CaculatedState,StoredState,i&gt;</em></li>
+    <li>Class HEA must be derived from <em>FlyweightHeavy&lt;Keeper,HeavyWeight,CaculatedState,StoredState,i&gt;</em></li>
+    <li>Both Keeper and HeavyWeight must be friends of <em>Flyweight&lt;Keeper,HeavyWeight,CalculatedState,StoredState,i&gt;</em></li>
+</ul>
+
+<p>It is recommended that Keeper be a friend of CalculatedState,
+and HeavyWeight be a friend of StoredState.</p>
+
+<p>When you use the Template Manager,all this happens
+automatically, including Keeper being a friend of
+CalculatedState, and HeavyWeight being a friend of StoredState.</p>
+
+<p><a name="avail"></a><strong>AVAILABLE METHODS:</strong></p>
+
+<p>Abbreviations:<br>
+K=Keeper<br>
+H=HeavyWeight<br>
+C=CalculatedState<br>
+S=StoredState<br>
+i=integer index</p>
+
+<pre>#define kType FlyweightKeeper&lt;K,H,C,S,i&gt;
+#define hType FlyweightHeavy&lt;K,H,C,S,i&gt;
+#define fType Flyweight&lt;K,H,C,S,i&gt;
+#define aType ArrayContainer&lt;H*&gt;</pre>
+
+<pre>template&lt;class K,class H,class C, class S,int i=0&gt; class Flyweight 
+                                                        : public aType {
+public:
+    Flyweight(); // default starting size (=10) of the HeavyWeight array
+    Flyweight(const unsigned int sz); // user-specified starting size
+    virtual ~Flyweight(){};
+    void add(H *const ip,const unsigned int k);  
+       // record ip as reference No.k, but only if the position is free
+    void force(H *const ip,const unsigned int k){remove(k); add(ip,k);}
+       // record ip as reference No.k; when k used, remove the old ref.
+    void remove(const int k){(void)(((aType*)this)-&gt;remove(k));}
+                                          // remove the reference at k
+    void remove(const H *ip); 
+       // search for this entry and remove it. Involves a linear search
+    void cleanHeavy(void); // destroy all HeavyWeight objects
+    S *getState(const unsigned int k); // get StoredState at reference k
+    int fun(const unsigned int k, int (H::*f)(C*), K *ep) const;
+       // key function in this pattern - see below
+};</pre>
+
+<p>Function<em> fun(k,fi,kp) </em>is pivotal for the cooperation
+between Keeper and HeavyWeight, which can communicate only
+through class Flyweight. <em>fun() </em>finds the HeavyWeight
+under reference k, and applies to it method <em>HeavyWeight::f()</em>.
+The pointer to the keeper is provided as additional reference
+which <em>fun()</em> can use to obtain the current
+CalculatedState. <em>fun()</em> passes the pointer returned by <em>f()</em>.</p>
+
+<p>For examples using this data structure, see <em>ttest/flyweigh.cpp</em>
+and <em>mtest/flyweigh.cpp</em>. The correct result is in <em>ptl/out/flyweigh.out.</em></p>
+
+<hr>
+
+<h3><a name="6.8"></a>(6.8) FINITE STATE MACHINE- FSM (file
+fsm.h)</h3>
+
+<p>A generic Finite State Machine was not included in the Pattern
+Book <a href="refer.htm">[4],</a> and is not in any commonly used
+class library. And yet, it is a very important pattern, and many
+applications depend on its efficient implementation. Our class
+FSM allows you to create and dynamically modify your own finite
+state machines that are fast and efficient.</p>
+
+<p>The FSM class assumes that you have a special class for each
+of your states, with a common base state class. Similarly, you
+must have a special class for each of the input stimulae, with
+one common input base class. In many applications, these two
+classes will really represent an integer or only a byte, but
+having them as general classes allows you to implement complex
+and yet highly efficient state machines.</p>
+
+<p><font size="4">State table:</font></p>
+
+<p><img src="g14state.jpg" width="650" height="437"></p>
+
+<p><font size="4">Function table:</font></p>
+
+<p><img src="g14func.jpg" width="650" height="437"></p>
+
+<p>The FSM class is implementated as template <em>FSM&lt;F,S,I,T,D&gt;</em>
+with the following parameters:</p>
+
+<pre>F = your finite state machine class
+S = base class for all your state classes
+I = base class for all your input classes
+T = type for the internal table index, must be unsigned and able to 
+    accomodate MAX(numInputs,numStates,numFuncts) entries.
+D = integer id when using multiple parallel organizations (as for other
+    patterns).</pre>
+
+<p>As pointed out by J.Coplien (see <a href="refer.htm">[5]</a>)
+this representation is rather unusual because your FSM class will
+inherit from a template which uses this class as one of the
+parameters, for example:</p>
+
+<pre>class myFSM : public MSF&lt;myFSM, myState, myInput, int, 0&gt; { ... };</pre>
+
+<p>Your FSM class (myFSM) can have an arbitrary number of
+transition functions that look like this: <em>S*
+myFSM::f(S*,void**)</em>. One function can be assigned to several
+transitions. The assignment of both functions and of target
+states is performend dynamically, while executing your program.</p>
+
+<p>Even though this concept is very general, you will find it
+simple to use once you go through the first example. Here is a
+state machine which describes the life of a typical university
+student. One night he(or she?) goes partying; the next day he is
+tired and studies in the evening; he parties the next day; and so
+on. The night before a test he does not go anywhere and tries to
+learn everything in the last minute. When going to a party, he
+needs some beer, and the night before the test, he drinks a lot
+of coffee. If we describe this behavior as a finite state
+machine, we get the following classes (skipping some unimportant
+details):</p>
+
+<pre>    class Student : public FSM&lt;Student,Party,Day,char&gt; {
+    public:
+        static PartyOrNot *buyBeer(..);
+        static PartyOrNot *buyCoffee(..);
+    };
+    class PartyOrNot : public FSMstate&lt;...&gt; { ... };
+    class Day : public FSMinput&lt;...&gt; { ... };</pre>
+
+<pre>    class GoParty : public PartyOrNot { ... } goParty;
+    class StayHome : public PartyOrNot { ... } stayHome;</pre>
+
+<pre>    class NormalDay : public Day { ... } normalDay;
+    class BeforeTest : public Day { ... } beforeTest;</pre>
+
+<p>You configure the state machine dynamically in your program,
+using statements like this:</p>
+
+<pre>    addTrans(&amp;normalDay, &amp;goParty, &amp;stayHome, NULL);
+    addTrans(&amp;normalDay, &amp;stayHome, &amp;goParty, Student::buyBeer);
+    addTrans(&amp;beforeTest, NULL, &amp;stayHome, Student::buyCoffee);</pre>
+
+<p>The functions assigned to the Student class may change the
+state transition, even though they are not used in this way in
+this example. Function <em>S* fire(I*) </em>applies new input to
+the state machine, and returns its new state. Here is a more
+detailed description of the <em>FSM&lt;&gt;</em> class:</p>
+
+<pre>template&lt;class F,class S,class I,class T,int D=0&gt; class FSM {
+typedef S* (*FSMfun)(S*,void**); 
+    ...
+public:
+    FSM(); // Creates a state machine with undefined state (NULL).
+           // Internal tables are initialized to the default size:
+           // 8 states, 8 inputs, 8 functions</pre>
+
+<pre>    FSM(int ns,int ni,int nf);  // Same as the default constructor,
+           // but internal tables are initialized to the given sizes.</pre>
+
+<pre>    ~FSM(); // behaviour as expected</pre>
+
+<pre>    // functions to maintain the state machine:
+    void addTrans(I *i, S *s1, S *s2, FSMfun f); // add transition
+           // to state s2, when in state s1 and receiving input i.
+           // On this transition, f is executed first. If f returns
+           // a nonzero (State*), this state overwrites s2 and is
+           // used instead of s2. Function f can be used for other
+           // purposes without influencing the next state, and is
+           // always executed as a part of the transition, except when
+           // f=NULL is given.
+           // When i=NULL, this transition applies to all inputs.
+           // When s1=NULL, this transition applies to all current states.
+           // When s2=NULL, the transition will not change the state.</pre>
+
+<pre>    void remState(S *s); // remove state and all associated transitions
+    void remInput(I *i); // remove input and all associated transitions
+    void remTrans(I *i, S *s); // remove some or all transitions
+           // remTrans(NULL,NULL) will remove all recorded transitions</pre>
+
+<pre>    // functions to operate the state machine
+    void setState(S *s);  // force the state machine into the given state
+    S *currentState();    // report the current state
+    S *fire(I *i);        // apply input i, and transfer to the next state
+};</pre>
+
+<p>Transition functions must either be free functions (not
+assigned to any class), or what we strongly recommend, static
+functions on your finite state machine class - just as we
+implemented functions buyBeer() and buyCoffee() above. In
+function</p>
+
+<pre>    S *f(S *s, void**);</pre>
+
+<p>the first parameter is always automatically the current state.
+The second parameter (void**) provides a convenient way of
+passing one or more (an array of) additional objects of
+paramters. Function <em>f()</em> may but need not return a new
+state.</p>
+
+<p>For examples using this data structure, see <em>ttest/fsm.cpp</em>
+and <em>mtest/fsm.cpp</em>. The correct result is in <em>ptl/out/fsm.out.</em></p>
+
+<hr>
+
+<pre><a href="chap7.htm">continue ...</a></pre>
+
+<pre>t<a href="index.htm">o the root of the User Guide ... </a>   </pre>
+</body>
+</html>

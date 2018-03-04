@@ -1,0 +1,22 @@
+size=128 used=116 count=4
+i=112 A=p
+i=113 A=q
+i=114 A=r
+i=115 A=s
+array bArr, size=12 used=8
+ after grow size=101 used=8
+bArr[4] access:  B=4
+i=2 B=22
+i=4 B=4
+i=5 B=5
+i=6 B=6
+i=7 B=7
+count=5
+sorted array:
+i=3 B=4
+i=4 B=5
+i=5 B=6
+i=6 B=7
+i=7 B=22
+before clean size=101 used=8 count=5
+after clean size=0 used=0 count=0

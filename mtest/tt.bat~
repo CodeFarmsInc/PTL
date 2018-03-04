@@ -1,0 +1,4 @@
+..\mgr\mgr ptrarray.cpp
+cl -EHsc -I..\lib ptrarray.cpp
+ptrarray > ptrarray.res
+..\mgr\diff ptrarray.res ..\out\ptrarray.out

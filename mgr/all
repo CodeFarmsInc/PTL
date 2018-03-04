@@ -1,0 +1,4 @@
+../envir/compile mgr
+mv a.out mgr
+../envir/compile diff
+mv a.out diff

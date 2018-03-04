@@ -1,0 +1,200 @@
+
+D:\PTL\TTEST>rem ------- aggregat -------- 
+
+D:\PTL\TTEST>command/c  ..\envir\tmptest aggregat 
+
+D:\PTL\TTEST>command/c ..\envir\compile aggregat
+
+D:\PTL\TTEST>cl -GX -I..\lib aggregat.cpp
+aggregat.cpp
+Microsoft (R) Incremental Linker Version 6.00.8168
+Copyright (C) Microsoft Corp 1992-1998. All rights reserved.
+
+/out:aggregat.exe 
+aggregat.obj 
+
+D:\PTL\TTEST>
+
+D:\PTL\TTEST>del aggregat.res
+
+D:\PTL\TTEST>aggregat > aggregat.res
+
+D:\PTL\TTEST>command/c ..\mgr\diff aggregat.res ..\out\aggregat.out
+
+D:\PTL\TTEST>
+
+
+D:\PTL\TTEST>rem ------- array -------- 
+
+D:\PTL\TTEST>command/c  ..\envir\tmptest array 
+
+D:\PTL\TTEST>command/c ..\envir\compile array
+
+D:\PTL\TTEST>cl -GX -I..\lib array.cpp
+array.cpp
+Microsoft (R) Incremental Linker Version 6.00.8168
+Copyright (C) Microsoft Corp 1992-1998. All rights reserved.
+
+/out:array.exe 
+array.obj 
+
+D:\PTL\TTEST>
+
+D:\PTL\TTEST>del array.res
+
+D:\PTL\TTEST>array > array.res
+
+D:\PTL\TTEST>command/c ..\mgr\diff array.res ..\out\array.out
+
+D:\PTL\TTEST>
+
+
+D:\PTL\TTEST>rem ------- collecti -------- 
+
+D:\PTL\TTEST>command/c  ..\envir\tmptest collecti 
+
+D:\PTL\TTEST>command/c ..\envir\compile collecti
+
+D:\PTL\TTEST>cl -GX -I..\lib collecti.cpp
+collecti.cpp
+Microsoft (R) Incremental Linker Version 6.00.8168
+Copyright (C) Microsoft Corp 1992-1998. All rights reserved.
+
+/out:collecti.exe 
+collecti.obj 
+
+D:\PTL\TTEST>
+
+D:\PTL\TTEST>del collecti.res
+
+D:\PTL\TTEST>collecti > collecti.res
+
+D:\PTL\TTEST>command/c ..\mgr\diff collecti.res ..\out\collecti.out
+
+D:\PTL\TTEST>
+
+
+D:\PTL\TTEST>rem ------- composit -------- 
+
+D:\PTL\TTEST>command/c  ..\envir\tmptest composit 
+
+D:\PTL\TTEST>command/c ..\envir\compile composit
+
+D:\PTL\TTEST>cl -GX -I..\lib composit.cpp
+composit.cpp
+Microsoft (R) Incremental Linker Version 6.00.8168
+Copyright (C) Microsoft Corp 1992-1998. All rights reserved.
+
+/out:composit.exe 
+composit.obj 
+
+D:\PTL\TTEST>
+
+D:\PTL\TTEST>del composit.res
+
+D:\PTL\TTEST>composit > composit.res
+
+D:\PTL\TTEST>command/c ..\mgr\diff composit.res ..\out\composit.out
+
+D:\PTL\TTEST>
+
+
+D:\PTL\TTEST>rem ------- flyweigh -------- 
+
+D:\PTL\TTEST>command/c  ..\envir\tmptest flyweigh 
+
+D:\PTL\TTEST>command/c ..\envir\compile flyweigh
+
+D:\PTL\TTEST>cl -GX -I..\lib flyweigh.cpp
+flyweigh.cpp
+Microsoft (R) Incremental Linker Version 6.00.8168
+Copyright (C) Microsoft Corp 1992-1998. All rights reserved.
+
+/out:flyweigh.exe 
+flyweigh.obj 
+
+D:\PTL\TTEST>
+
+D:\PTL\TTEST>del flyweigh.res
+
+D:\PTL\TTEST>flyweigh > flyweigh.res
+
+D:\PTL\TTEST>command/c ..\mgr\diff flyweigh.res ..\out\flyweigh.out
+
+D:\PTL\TTEST>
+
+
+D:\PTL\TTEST>rem ------- ptrarray -------- 
+
+D:\PTL\TTEST>command/c  ..\envir\tmptest ptrarray 
+
+D:\PTL\TTEST>command/c ..\envir\compile ptrarray
+
+D:\PTL\TTEST>cl -GX -I..\lib ptrarray.cpp
+ptrarray.cpp
+Microsoft (R) Incremental Linker Version 6.00.8168
+Copyright (C) Microsoft Corp 1992-1998. All rights reserved.
+
+/out:ptrarray.exe 
+ptrarray.obj 
+
+D:\PTL\TTEST>
+
+D:\PTL\TTEST>del ptrarray.res
+
+D:\PTL\TTEST>ptrarray > ptrarray.res
+
+D:\PTL\TTEST>command/c ..\mgr\diff ptrarray.res ..\out\ptrarray.out
+
+D:\PTL\TTEST>
+
+
+D:\PTL\TTEST>rem ------- arraycon -------- 
+
+D:\PTL\TTEST>command/c  ..\envir\tmptest arraycon 
+
+D:\PTL\TTEST>command/c ..\envir\compile arraycon
+
+D:\PTL\TTEST>cl -GX -I..\lib arraycon.cpp
+arraycon.cpp
+Microsoft (R) Incremental Linker Version 6.00.8168
+Copyright (C) Microsoft Corp 1992-1998. All rights reserved.
+
+/out:arraycon.exe 
+arraycon.obj 
+
+D:\PTL\TTEST>
+
+D:\PTL\TTEST>del arraycon.res
+
+D:\PTL\TTEST>arraycon > arraycon.res
+
+D:\PTL\TTEST>command/c ..\mgr\diff arraycon.res ..\out\arraycon.out
+
+D:\PTL\TTEST>
+
+
+D:\PTL\TTEST>rem ------- fsm -------- 
+
+D:\PTL\TTEST>command/c  ..\envir\tmptest fsm 
+
+D:\PTL\TTEST>command/c ..\envir\compile fsm
+
+D:\PTL\TTEST>cl -GX -I..\lib fsm.cpp
+fsm.cpp
+Microsoft (R) Incremental Linker Version 6.00.8168
+Copyright (C) Microsoft Corp 1992-1998. All rights reserved.
+
+/out:fsm.exe 
+fsm.obj 
+
+D:\PTL\TTEST>
+
+D:\PTL\TTEST>del fsm.res
+
+D:\PTL\TTEST>fsm > fsm.res
+
+D:\PTL\TTEST>command/c ..\mgr\diff fsm.res ..\out\fsm.out
+
+D:\PTL\TTEST>
+

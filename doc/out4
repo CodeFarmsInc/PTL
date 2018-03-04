@@ -1,0 +1,21 @@
+
+department= 200
+employees: Head F.
+
+    department= 220
+    employees: Mann H.
+
+        department= 225
+        employees: Brown J. Green D. Black S.
+        projects: A
+
+        department= 228
+        employees: Little K. Grossman A.
+        projects: B C
+
+    department= 240
+    employees: Chapeau A.
+
+        department= 243
+        employees: Zeller K. Krpec P.
+        projects: D E F

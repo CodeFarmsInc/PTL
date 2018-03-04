@@ -1,0 +1,16 @@
+echo " ------- aggregat -------- "
+../envir/tmptest aggregat
+echo " ------- array -------- "
+../envir/tmptest array
+echo " ------- collecti -------- "
+../envir/tmptest collecti
+echo " ------- composit -------- "
+../envir/tmptest composit
+echo " ------- flyweigh -------- "
+../envir/tmptest flyweigh
+echo " ------- ptrarray -------- "
+../envir/tmptest ptrarray
+echo " ------- arraycon -------- "
+../envir/tmptest arraycon
+echo " ------- fsm -------- "
+../envir/tmptest fsm

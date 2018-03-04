@@ -1,0 +1,12 @@
+starting  state=A
+ input=2 state=7
+ input=1 fun2 state=B
+ input=1 fun2 state=A
+ input=1 fun1 state=A
+ input=2 state=7
+starting  state=7
+ input=2 fun2 state=A
+ input=1 fun1 state=A
+ input=1 fun1 state=A
+ input=1 fun1 state=A
+ input=2 state=7

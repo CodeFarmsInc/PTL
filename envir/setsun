@@ -1,0 +1,6 @@
+cp sun.cmp compile
+cp sun.tmp tmptest
+cp sun.mgr mgrtest
+cp sun.env ../lib/environ.h
+cd ../mgr
+all

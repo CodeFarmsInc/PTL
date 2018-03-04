@@ -1,0 +1,229 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+
+<head>
+<meta http-equiv="Content-Type"
+content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 2.0">
+<title>Pattern Template Library - Chap.4</title>
+</head>
+
+<body bgcolor="#FFFFFF">
+
+<h2>Chap.4: EXAMPLE WITH SEVERAL AGGREGATES</h2>
+
+<hr>
+
+<p>Let us go through a full, running sample problem which uses
+several aggregates. Below is the class diagram of the problem. In
+this simplified textual form, symbol A 0------x B represents an
+aggregate between A and B. This is the same as assigning many Bs
+to each A.</p>
+
+<pre> <img src="g2class.jpg" width="509" height="208"></pre>
+
+<p>Each Department has several other Departments. In other words,
+Departments form a tree. Within this tree, each Department has a
+set of Employees and a set of Projects. The following program
+uses the class Aggregate from the Pattern Template Library. It
+creates a sample hierarchy of Departments, each with Employees
+and Projects, demonstrates how the data can be manipulated by
+removing one Employee and moving another Employee into a new
+position, and then prints the resulting data.</p>
+
+<p>Watch for the following details:</p>
+
+<ul>
+    <li>We assume here that you compile with the I option set to
+        the directory TPL/LIB, where all the *.h files are stored.</li>
+    <li>The inheritance statements may look complicated at first,
+        but if you follow the OO diagram, they make sense. Later
+        on, you will learn how to avoid these statements by using
+        the Template Manager. 
+    <li>Function <em>Department::find()</em> is interesting
+        because it shows how you can easily traverse the entire
+        tree.</li>
+    <li>Function <em>Department::prt()</em> demonstrates the use
+        of iterators for various aggregates. Don't get confused
+        by variable offset and function <em>prtOffset()</em>.
+        Both are used only to generate a nice looking printout,
+        with deeper offset for subordinated departments. - Note
+        how the entire data structure is compressed into the
+        three <em>Aggregate&lt;&gt; </em>statements. These three
+        lines are almost like a database schema: they contain all
+        the relations between the application classes.</li>
+    <li>The creation of the data is a bit tedious to read, but we
+        wanted to show you a meaningful example. The end of <em>main()</em>,
+        where the data are modified, is more interesting.</li>
+    <li>Note that before destroying the Boss, he must be first
+        removed from his Department, and before moving Chapeau to
+        another Department, she also must be first removed from
+        her original Department. If this did not happen, the
+        library would detect a run time error.</li>
+</ul>
+
+<pre>// ---------------------------------------------------------
+#include &lt;iostream.h&gt;
+#include &lt;string.h&gt;
+#include &lt;mgr.h&gt;  // always include
+#include &lt;aggregat.h&gt;
+class Department;
+class Employee;
+class Project;
+class Department : public AggregateParent&lt;Department,Department&gt;,
+                   public AggregateChild&lt;Department,Department&gt;,
+                   public AggregateParent&lt;Department,Employee&gt;,
+                   public AggregateParent&lt;Department,Project&gt;{
+    int mDeptNo;
+    void prtOffset(int i);
+public:
+    Department(int n){mDeptNo=n;}
+    void prt(int offset); // print this and subordinate departments
+    Employee* find(char *name); // recursively, find this employee
+};
+class Employee : public AggregateChild&lt;Department,Employee&gt;{ 
+    char *mpName;
+public:
+    Employee(char *n){mpName=new char[strlen(n)+1]; strcpy(mpName,n);}
+    void prt(void){cout &lt;&lt; &quot; &quot; &lt;&lt; mpName;}
+    int checkName(char *n){return !strcmp(mpName,n);}
+};
+class Project : public AggregateChild&lt;Department,Project&gt;{ 
+    char mProj;
+public:
+    Project(char p){mProj=p;}
+    void prt(void){cout &lt;&lt; &quot; &quot; &lt;&lt; mProj;}
+};
+// ---------------------------------------------------
+// The following lines declare the data organization.
+// These objects do not have to be global, but making them
+// global often contributes to the clarity of the code
+// ---------------------------------------------------
+Aggregate&lt;Department,Department&gt; departments;
+Aggregate&lt;Department,Employee&gt; employees;
+Aggregate&lt;Department,Project&gt; projects;
+// ---------------------------------------------------
+void Department::prtOffset(int i){
+    cout &lt;&lt; &quot;\n&quot;;
+    for(int k=0; k&lt;i; k++) cout &lt;&lt; &quot;    &quot;;
+}
+void Department::prt(int offset){
+    Employee *pEmpl;
+    Project *pProj;
+    Department *pDept;
+    AggregateIterator&lt;Department,Department&gt; deptIt;
+    AggregateIterator&lt;Department,Employee&gt;   emplIt;
+    AggregateIterator&lt;Department,Project&gt;    projIt;
+    prtOffset(offset);
+    cout &lt;&lt; &quot;department= &quot; &lt;&lt; mDeptNo;
+    if(employees.head(this)){
+        prtOffset(offset);
+        cout &lt;&lt; &quot;employees:&quot;;
+        ITERATE(emplIt,this,pEmpl) pEmpl-&gt;prt();
+    }
+    if(projects.head(this)){
+        prtOffset(offset);
+        cout &lt;&lt; &quot;projects:&quot;;
+        ITERATE(projIt,this,pProj) pProj-&gt;prt();
+    }
+    cout &lt;&lt; &quot;\n&quot;;
+    // recursively, print all subordinated departments
+    ITERATE(deptIt,this,pDept) pDept-&gt;prt(offset+1);
+}
+    </pre>
+
+<pre>Employee* Department::find(char *name){
+    Employee *pEmpl;
+    Department *pDept;
+    AggregateIterator&lt;Department,Department&gt; deptIt;
+    AggregateIterator&lt;Department,Employee&gt;   emplIt;
+    // traverse the employees of this department
+    ITERATE(emplIt,this,pEmpl){
+        if(pEmpl-&gt;checkName(name))return pEmpl;
+    }
+    // recursively, search subordinate departments
+    ITERATE(deptIt,this,pDept){
+        pEmpl=pDept-&gt;find(name);
+        if(pEmpl)return pEmpl;
+    }
+    return NULL;
+}
+    </pre>
+
+<pre>int main(void){
+    Department *pDept0,*pDept1,*pDept2;
+    Employee *pEmpl;
+    Project *pProj;
+    </pre>
+
+<pre>    // create a small hierarchy of departments under pDept0
+    // To each department, add some employees and projects
+    pDept0=new Department(200);
+        pEmpl=new Employee(&quot;Head F.&quot;); employees.addTail(pDept0,pEmpl);
+    pDept1=new Department(220); departments.addTail(pDept0,pDept1);
+        pEmpl=new Employee(&quot;Mann H.&quot;); employees.addTail(pDept1,pEmpl);
+    pDept2=new Department(225); departments.addTail(pDept1,pDept2);
+        pEmpl=new Employee(&quot;Brown J.&quot;); employees.addTail(pDept2,pEmpl);
+        pEmpl=new Employee(&quot;Green D.&quot;); employees.addTail(pDept2,pEmpl);
+        pEmpl=new Employee(&quot;Black S.&quot;); employees.addTail(pDept2,pEmpl);
+        pProj=new Project('A'); projects.addTail(pDept2,pProj);
+    pDept2=new Department(228); departments.addTail(pDept1,pDept2);
+        pEmpl=new Employee(&quot;Little K.&quot;); employees.addTail(pDept2,pEmpl);
+        pEmpl=new Employee(&quot;Grossman A.&quot;); employees.addTail(pDept2,pEmpl);
+        pProj=new Project('B'); projects.addTail(pDept2,pProj);
+        pProj=new Project('C'); projects.addTail(pDept2,pProj);
+    pDept1=new Department(240); departments.addTail(pDept0,pDept1);
+        pEmpl=new Employee(&quot;Boss I.&quot;); employees.addTail(pDept1,pEmpl);
+    pDept2=new Department(243); departments.addTail(pDept1,pDept2);
+        pEmpl=new Employee(&quot;Zeller K.&quot;); employees.addTail(pDept2,pEmpl);
+        pEmpl=new Employee(&quot;Chapeau A.&quot;); employees.addTail(pDept2,pEmpl);
+        pEmpl=new Employee(&quot;Krpec P.&quot;); employees.addTail(pDept2,pEmpl);
+        pProj=new Project('D'); projects.addTail(pDept2,pProj);
+        pProj=new Project('E'); projects.addTail(pDept2,pProj);
+        pProj=new Project('F'); projects.addTail(pDept2,pProj);
+    // Boss I. leaves the company
+    pEmpl=pDept0-&gt;find(&quot;Boss I.&quot;); 
+    employees.remove(pEmpl);
+    delete pEmpl;
+    // Chapeau A. is promoted as head of department 240
+    pEmpl=pDept2-&gt;find(&quot;Chapeau A.&quot;); 
+    employees.remove(pEmpl); 
+    employees.addTail(pDept1,pEmpl);
+    pDept0-&gt;prt(0); // print the entire organization
+    return(0);
+}
+/* ---------------------- results -----------------------</pre>
+
+<pre>department= 200
+employees: Head F.</pre>
+
+<pre>    department= 220
+    employees: Mann H.</pre>
+
+<pre>        department= 225
+        employees: Brown J. Green D. Black S.
+        projects: A</pre>
+
+<pre>        department= 228
+        employees: Little K. Grossman A.
+        projects: B C</pre>
+
+<pre>    department= 240
+    employees: Chapeau A.</pre>
+
+<pre>        department= 243
+        employees: Zeller K. Krpec P.
+        projects: D E F
+   ----------------------------------------------------*/</pre>
+
+<p>For your convenience, this program is stored in the
+documentation directory as PTL\DOC\TEST4.CPP, and the results are
+in file PTL\DOC\OUT4.</p>
+
+<hr>
+
+<p><a href="chap5.htm">continue ...</a></p>
+
+<p><a href="index.htm">to the root of the User Guide ...</a></p>
+</body>
+</html>

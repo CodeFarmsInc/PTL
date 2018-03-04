@@ -1,0 +1,274 @@
+------------------------------------------------------------------------
+NOTE NO.1: Programming trick
+--------------------------------
+One of the key steps in implementing the Template Manager was the
+programming trick which eliminates '}' after Pattern(...).
+The following short program demonstrates the method.
+
+#include <stdio.h>
+#define MAC(A) public A { int i; /##/
+class A { int k;};
+class B : MAC(A) {
+    int m;
+};
+void main(){
+    B b;
+};
+
+
+------------------------------------------------------------------------
+NOTE NO.2: Naming conventions
+-------------------------------
+The names of files related to each pattern share the same name,
+which is the pattern name reduced to 8 characters, converted to lower
+case. For example, the template for the Collection is in file 
+collecti.g, while the test program for pattern Composite is in file
+composit.cpp, and the correct results for this test are in file 
+composit.out. This naming convention is also used by the Template
+Manager. If you add new patterns to the library, we suggest that you
+follow the same convention.
+
+
+------------------------------------------------------------------------
+NOTE NO.3: Reasons for using intrusive lists.
+-------------------------------
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+Problem No.1: Should we use pointer-based (indirect) collections
+              or intrusive lists based on embedded pointers
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+Case 1: Indirect (pointer based) collections are unacceptable,
+        because removing an object always requires a long linear search.
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+Assume that object of type A contains a collection of type B objects.
+This can be implemented either with a linked list of auxilliary
+link objects, C, or with an array of pointers, D:
+
+             A->C->C->C->C->C
+                |  |  |  |  |
+                v  v  v  v  v
+                B  B  B  B  B
+
+             A->D [0]->B
+                  [1]->B
+                  [2]->B
+                  [3]->B
+                  [4]->B
+
+Whether the list implementation is singly or doubly linked, when you
+ask for a particular object B to be removed from the collection,
+you have to run through the list until you find the appropriate C
+or index of D that leads to it. This is unacceptably slow in many
+applications.
+
+This leads to an interesting conclusion that we do not gain much
+by linking C objects into a doubly linked list.
+
+Compare pointer based lists with the doubly linked intrusive list,
+which uses pointers embedded in the B objects:
+
+       A->    B        B        B        B        B
+              next->   next->   next->   next->   next
+              prev   <-prev   <-prev   <-prev   <-prev
+
+Here removing any B means only resetting pointers on adjacent B's and,
+possibly, resetting pointer on A, in case that we are removing the first
+object.
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+Case 2: Run-time overhead of pointer based collections.
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+Memory needed per one B object in the collection is shown in the following
+table:
+
+------------------------------------------------------
+pointer-based linked list:      2 pointers (next,obj)
+pointer-based array:            1.5 pointers (*)
+intrusive singly-linked list:   1 pointer (next)
+intrusive doubly-linked list:   2 pointers (next,prev)
+------------------------------------------------------
+* average when doubling the size of the array on the overflow
+
+In some situations, the difference of 4 bytes in the size of the objects
+can make a difference but, in most applications, it becomes a secondary
+issue if there are other serious advantages or disadvantages for
+different implementation styles.
+
+Let us compare the run-time. When traversing the list, the difference
+is only minor:
+
+------------------------------------------------------
+pointer-based linked list:      2 pointers jumps
+pointer-based array:            1 index increment, 1 pointer jump
+intrusive singly-linked list:   1 pointer jump
+intrusive doubly-linked list:   1 pointer jump
+------------------------------------------------------
+
+From this, you may conclude that, from the performance point of view,
+all four implementations are more or less equivalent. THAT WOULD BE
+A GRAVE MISTAKE! The difference becomes apparent when you consider
+creation and destruction of auxilliary objects. To create or destroy
+an object takes much longer than setting couple of pointers,
+and the number of allocation calls becomes a major factor in how much
+time does it take to manage the collection. Note that pointer based 
+list needs one auxilliary object for each item on the list;
+the array based collection has to re-allocate and copy the entire array
+any time the array fills up; intrusive lists require no auxilliary objects.
+
+On average, the array-based collection has a smaller time overhead
+than a pointer-based linked list. However, the overhead comes in
+occassional bursts (when the array must be reallocated and copied into
+the new location), which may cause problems in real time systems such
+as telephony.
+
+The following program demonstrates the situation:
+
+class B { int i; };
+class C {
+public:
+    C *next;
+    B *obj;
+    C(){next=NULL;}
+};
+class A {
+public:
+    C *first;
+    A(){first=NULL;}
+};
+
+#define N 20000
+int main(void){
+    long i; A* a=new A; B* b=new B; C* c=new C;
+    // first time reading
+    for(i=0;i<N; i++){
+        c=new C;   // comment this line out
+        c->next=a->first;
+        a->first=c;
+        c->obj=b;
+    }
+    // second time reading
+    return(0);
+}
+
+Result of this run:
+
+                                       allocating C    not allocating
+-----------------------------------------------------------------
+SUN Sparc 2, AT&T C++ 2.1, N=500000;       26    sec     2    sec
+DOS 386, Borland C++ 4.5,  N=20000;         0.32 sec    <0.05 sec
+-----------------------------------------------------------------
+
+For practical purposes, we can say that the pointer-based collections
+take about 10-times more time to set up!
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+Case 3: Potential for dangerous pointer errors
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+Pointer-based collections have the disadvantage that if you destroy
+one of the B objects without disconnecting it from its auxilliary
+C object, you create one of the most dangerous situatios in C++
+programming. Pointer obj on C leads to an invalid object and will
+cause, usually much later under, a crash of the program. Because
+this happens much later on, the cause of the problem is hard to find.
+
+When working with intrusive lists, this situation can be prevented 
+by using circular lists. Pointers such as next or prev are set to
+NULL on disconneted objects; this allows to check whether any object
+is disconnected (all its pointers are NULL) before destroying it.
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+Case 4: Heterogenous lists
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+Sometimes, programmers argue that one advantage of pointer-based lists
+is that, if class C has a void pointer
+
+class C {
+    C *next;
+    void *obj;
+    ...
+};
+
+you can place different object types on the same list. Working with void*
+pointer is potentially dangerous. A much better implementation style is
+to use a common base class, and a fully typed collection. For example,
+when placing Appples and Oranges into one collection, use a collection
+of type Fruit:
+
+class Fruit { };
+class Apple : public Fruit { ... };
+class Orange: public Fruit { ... };
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+Case 5: Multiple lists
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+There are two situations when pointer-based collections provide
+a better solution:
+(1) When there is a large number of objects, and the collection includes
+    ony a small subset of the objects, the pointer-based collections
+    saves memory.
+(2) When one object can be simultaneously in an undetermined number
+    of collections (the number of collections changing dynamically).
+    This is a situation which intrusive lists cannot handle.
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+Case 6: Pointer-based collection can be implemented with an intrusive list.
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+Assume that our library has a collection based on an intrusive list and,
+for one of the reasons listed above, you need a pointer-based list.
+All you have to do is to make a collection of auxilliary objects Link,
+which point to your objects:
+
+class B { ... };  // your objects
+class Link { B *obj;}
+class A { ... };  // your head of the collection
+
+Collection<A,Link> col;
+// use this or other form of creating a collection of Links on A
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+Case 7: Intrusive list cannot be derived from a pointer-based list.
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+Reason: There is no mechanism for inserting data structure pointers
+        into the application classes.
+
+
+------------------------------------------------------------------------
+NOTE NO.4: Porting as of June 1966
+-------------------------------
+
+Everything in this library is coded in standard C++ as of June 1996
+and should be platform independent and, theoretically, should run with every
+compiler which supports templates. Unfortunately, many compilers are behind the
+current standard. If the library does not compile with your favourite
+compiler, you have three possible courses of action:
+
+   (1) Press on the vendor to improve the compiler.
+   (2) Move to a better compiler.
+   (3) Code patterns by hand instead of using our template library.
+
+In today's world where compiler vendors issue several new versions per year,
+it is beyond our capacity to check continuously the compatibility
+with all compilers. Situation with some popular compilers today is:
+ 
+   Borland 4.52        - runs fine
+   Microsoft VC++ 4.1  - runs fine
+   Watcom 10.6         - runs without Template Processor, the reason is
+                         a small problem in the cpp preprocessor. 
+                         Note No.1 demonstrates the problem.
+
+-----------------------------------------------------------------------
+Examples of how to invoke various compilers.
+
+Borland:         bcc -ml -I..\lib composit.cpp
+Watcom:          wcl386 -I..\lib composit.cpp
+Microsoft:       cl -I..\lib composit.cpp
+

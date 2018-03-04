@@ -1,0 +1,21 @@
+Product=myProduct
+    Assembly No.1000
+        Nut No.1501 diam=8
+        Bolt No.1502 diam=8 -> Nut No.1501 diam=8
+        Assembly No.1100
+            Plate No.1110 x=34 y=22
+            Nut No.1101 diam=10
+            Bolt No.1102 diam=10 -> Nut No.1101 diam=10
+            Nut No.1103 diam=10
+            Bolt No.1104 diam=10 -> Nut No.1103 diam=10
+        Assembly No.1100
+            Plate No.1120 x=72 y=12
+            Nut No.1105 diam=8
+            Bolt No.1106 diam=8 -> Nut No.1105 diam=8
+            Plate No.1130 x=14 y=14
+            Nut No.1107 diam=6
+            Bolt No.1108 diam=6 -> Nut No.1107 diam=6
+list of all plates:
+    Plate No.1110 x=34 y=22
+    Plate No.1120 x=72 y=12
+    Plate No.1130 x=14 y=14

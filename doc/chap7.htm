@@ -1,0 +1,196 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+
+<head>
+<meta http-equiv="Content-Type"
+content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 2.0">
+<title>Pattern Template Library - Chap.7</title>
+</head>
+
+<body bgcolor="#FFFFFF">
+
+<h2>Chap.7: EXAMPLE: SEVERAL PATTERNS AND USING THE TEMPLATE
+MANAGER</h2>
+
+<hr>
+
+<p>This example works with class Product, which represents a
+complex mechanical device built as a hierarchy of Assemblies.
+Each Assembly is composed of simple Parts and lower level
+Assemblies (pattern Composite). Parts can be: Plate, Bolt, and
+Nut. Each Bolt keeps a pointer to its corresponding Nut. Each
+Plate keeps a one-to-many relation with the associated Bolts
+(pattern Agregate), and the Product keeps also a list of all
+Plates (pattern Collection). As you can see, this is an example
+of a framework, which is like a small object-oriented database
+that sits in the memory.</p>
+
+<p>The standard class diagram, which does not have symbols for
+patterns, would look like this:</p>
+
+<pre> <img src="g15.jpg" width="650" height="290"></pre>
+
+<pre>// -------------------------------------------------------------
+#include &lt;iostream.h&gt;
+#define TEMPLATE_MANAGER
+#include &quot;pattern.h&quot;
+class Part;
+class Plate;
+class Bolt;
+class Nut;
+class Assembly;
+class Product;</pre>
+
+<pre>class Part : Pattern(Part) {
+protected:
+    int mPartNo;
+public:
+    Part(int n){mPartNo=n;}
+    virtual void prt(int k){};
+};</pre>
+
+<pre>class Plate : public Part, Pattern(Plate) {
+                         // inheritance of Part not part of composite
+    int mx,my;
+public:
+    Plate(int n,int x,int y):Part(n){mx=x; my=y;}
+    void prt(int k);
+};</pre>
+
+<pre>class Bolt : public Part, Pattern(Bolt) {
+                         // inheritance of Part not part of composite
+    int mDiam;
+    Nut *mpNut; // knows its own nut
+public:
+    Bolt(int n,int d,Nut *np):Part(n){mDiam=d; mpNut=np;}
+    void prt(int k);
+};</pre>
+
+<pre>class Nut : public Part { // does not need Pattern(..), is not in any pattern
+    int mDiam;
+public:
+    Nut(int n,int d):Part(n){mDiam=d;}
+    void prt(int k);
+};</pre>
+
+<pre>class Assembly : Pattern(Assembly) { // covers even inheritance from Part
+public:
+    Assembly(int n):Part(n){}
+    void prt(int k);
+};</pre>
+
+<pre>class Product : Pattern(Product) {
+    char *mpName; // product name
+    Assembly *mpAssembly; // to the root assembly
+public:
+    Product(char *name,Assembly *root){mpName=name; mpAssembly=root;}
+    void prt(); // print the composition of the entire product
+};</pre>
+
+<pre>void Plate::prt(int k){
+    for(int i=0; i&lt;k; i++) cout &lt;&lt; &quot;    &quot;;
+    cout &lt;&lt; &quot;Plate No.&quot; &lt;&lt; mPartNo &lt;&lt; &quot; x=&quot; &lt;&lt; mx &lt;&lt; &quot; y=&quot; &lt;&lt; my &lt;&lt; &quot;\n&quot;;
+}</pre>
+
+<pre>void Nut::prt(int k){
+    for(int i=0; i&lt;k; i++) cout &lt;&lt; &quot;    &quot;;
+    cout &lt;&lt; &quot;Nut No.&quot; &lt;&lt; mPartNo &lt;&lt; &quot; diam=&quot; &lt;&lt; mDiam &lt;&lt; &quot;\n&quot;;
+}</pre>
+
+<pre>void Bolt::prt(int k){
+    for(int i=0; i&lt;k; i++) cout &lt;&lt; &quot;    &quot;;
+    cout &lt;&lt; &quot;Bolt No.&quot; &lt;&lt; mPartNo &lt;&lt; &quot; diam=&quot; &lt;&lt; mDiam &lt;&lt; &quot; -&gt; &quot;; mpNut-&gt;prt(0);
+}</pre>
+
+<pre>void Assembly::prt(int k){
+    pattern_iterator_hier it;
+    Part *pPart;
+    for(int i=0; i&lt;k; i++) cout &lt;&lt; &quot;    &quot;;
+    cout &lt;&lt; &quot;Assembly No.&quot; &lt;&lt; mPartNo &lt;&lt; &quot;\n&quot;;
+    ITERATE(it,this,pPart){
+        pPart-&gt;prt(k+1);
+    }
+}</pre>
+
+<pre>void Product::prt(){
+    Plate *pPlate;
+    // first print the assembly hierarchy
+    cout &lt;&lt; &quot;Product=&quot; &lt;&lt; mpName &lt;&lt; &quot;\n&quot;;
+    mpAssembly-&gt;prt(1);
+    cout &lt;&lt; &quot;list of all plates:\n&quot;;
+    pattern_iterator_plates it;
+    ITERATE(it,this,pPlate) pPlate-&gt;prt(1);
+}    </pre>
+
+<pre>int main(void){
+   pattern Composite&lt;Assembly,Part,0&gt; hier; // hierarchy of Assemblies
+   pattern Aggregate&lt;Plate,Bolt,0&gt; bolts; // 1-to-many relation, both ways
+   pattern Collection&lt;Product,Plate,0&gt; plates; // all plates in the product
+   Product *pProduct;
+   Assembly *pRootAssembly;</pre>
+
+<pre>   // using simplified names which permit table-like code in this case
+   Assembly *a1,*a2; Plate *p; Bolt *b; Nut *n;</pre>
+
+<pre>   // create a complex product from plates, bolts, and nuts
+   pRootAssembly=new Assembly(1000);
+   pProduct=new Product(&quot;myProduct&quot;,pRootAssembly);
+   a1=new Assembly(1100); // assembly one
+   p=new Plate(1110,34,22); plates.addTail(pProduct,p); hier.addTail(a1,p);
+   n=new Nut(1101,10);                                  hier.addTail(a1,n);
+   b=new Bolt(1102,10,n); bolts.addTail(p,b);           hier.addTail(a1,b);
+   n=new Nut(1103,10);                                  hier.addTail(a1,n);
+   b=new Bolt(1104,10,n); bolts.addTail(p,b);           hier.addTail(a1,b);
+   a2=new Assembly(1100); // assembly two
+   p=new Plate(1120,72,12); plates.addTail(pProduct,p); hier.addTail(a2,p);
+   n=new Nut(1105,8);                                   hier.addTail(a2,n);
+   b=new Bolt(1106,8,n); bolts.addTail(p,b);            hier.addTail(a2,b);
+   p=new Plate(1130,14,14); plates.addTail(pProduct,p); hier.addTail(a2,p);
+   n=new Nut(1107,6);                                   hier.addTail(a2,n);
+   b=new Bolt(1108,6,n); bolts.addTail(p,b);            hier.addTail(a2,b);
+    </pre>
+
+<pre>   // nut &amp; bolt for the root assembly, not linked to any plate
+   n=new Nut(1501,8);    hier.addTail(pRootAssembly,n);
+   b=new Bolt(1502,8,n); hier.addTail(pRootAssembly,b);
+   hier.addTail(pRootAssembly,a1);
+   hier.addTail(pRootAssembly,a2);</pre>
+
+<pre>   pProduct-&gt;prt();
+   return 0;
+}
+</pre>
+
+<p>Assuming that you have your environment properly set, you can
+compile and run it. The result is in file PAT\DOC\OUT7<em>:</em></p>
+
+<pre>Product=myProduct
+    Assembly No.1000
+        Nut No.1501 diam=8
+        Bolt No.1502 diam=8 -&gt; Nut No.1501 diam=8
+        Assembly No.1100
+            Plate No.1110 x=34 y=22
+            Nut No.1101 diam=10
+            Bolt No.1102 diam=10 -&gt; Nut No.1101 diam=10
+            Nut No.1103 diam=10
+            Bolt No.1104 diam=10 -&gt; Nut No.1103 diam=10
+        Assembly No.1100
+            Plate No.1120 x=72 y=12
+            Nut No.1105 diam=8
+            Bolt No.1106 diam=8 -&gt; Nut No.1105 diam=8
+            Plate No.1130 x=14 y=14
+            Nut No.1107 diam=6
+            Bolt No.1108 diam=6 -&gt; Nut No.1107 diam=6
+list of all plates:
+    Plate No.1110 x=34 y=22
+    Plate No.1120 x=72 y=12
+    Plate No.1130 x=14 y=14</pre>
+
+<hr>
+
+<p><a href="chap8.htm">continue ...</a></p>
+
+<p><a href="index.htm">to the root of the User Guide ...</a></p>
+</body>
+</html>

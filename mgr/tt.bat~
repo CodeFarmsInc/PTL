@@ -1,0 +1,2 @@
+cl -GX -I..\lib mgr.cpp
+cl -GX -I..\lib diff.cpp

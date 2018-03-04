@@ -1,0 +1,165 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+
+<head>
+<meta http-equiv="Content-Type"
+content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 2.0">
+<title>Pattern Template Library  -  Chap.3</title>
+</head>
+
+<body bgcolor="#FFFFFF">
+
+<h2>Chap.3: SMART ITERATORS</h2>
+
+<hr>
+
+<p>A class library usually provides one or several iterators for
+each data structure. The iterator permits you to traverse the
+data using the operators ++ and --. However, if you try to
+destroy an aggregate by traversing it and destroying individual
+children, most libraries will crash:</p>
+
+<pre>    class Department { ... };
+    class Employee { ... };</pre>
+
+<pre>    Employee *e;
+    Aggregate&lt;Department,Employee&gt; agg;</pre>
+
+<pre>    // create a department with 10 employees
+    Department* d=new Department;
+    for(i=0; i&lt;10; i++){
+        e=new Employee;
+        aggr.addTail(d,e);
+    }</pre>
+
+<pre>    // disconnect and destroy all employees
+    AggregateIterator&lt;Department,Employee&gt; it;
+    for(e=it.start(d); e; e=++it){ // crash on the second pass
+        aggr.remove(e);
+        delete e; 
+    };</pre>
+
+<p>The reason for this crash is that most iterators remember the
+current object, and use its <em>next</em>i pointer to get to the
+next object on the list. If the current object is destroyed
+within the loop, the next call to ++ attempts to use pointer <em>next</em>
+on an invalid (already destroyed) object, which results in a
+crash.</p>
+
+<p>The cure for this problem is to have the iterator remember not
+the current object, but the next object on the list. Then, even
+if the current object is destroyed, you still get the next object
+correctly. This is the method used througout the Pattern Template
+Library. If you look at the implementation of any of the
+iterators in lib/*.h, you will see that this only slightly
+complicates the logic of the operators ++ and --, and is
+certainly worth the qualitative improvement in the behavior of
+the iterator.</p>
+
+<p>The improved iterator still is not bullet proof. For example,
+if you perform the following operation, it will crash:</p>
+
+<pre>    Employee *e, *nxt;
+    for(e=it.start(d); e; e=++it){
+        if(...){
+            nxt=aggr.nextChild(e);
+            aggr.remove(nxt);
+            delete nxt; 
+        }
+        ...
+    };</pre>
+
+<p>It is possible to design an iterator which permits one to
+remove or add objects while traversing the list. In this case,
+for example, the Aggreate class must keep the list of all active
+AggregateIterator instances. Functions <em>Aggregate::addTail()</em>
+and <em>Aggregate::remove()</em> must run through all active
+iterators and check whether the change in the list affects the
+next object stored in each iterator, and if it does, modify it. </p>
+
+<p>The PTL does not use this type of iterator, because it would
+cause problems when running with multiple threads.</p>
+
+<p>The PTL permits you to use three styles of traversal loops.
+The first style combines a <em>for(..)</em> loop with functions <em>start()</em>
+or <em>end()</em> which start the iterator from the beginning or
+the end of the list:</p>
+
+<pre>    Department *d;
+    Employee *e; </pre>
+
+<pre>    AggregateIterator&lt;Department,Employee&gt; it;</pre>
+
+<pre>    ...</pre>
+
+<pre>    for(e=it.start(d); e; e= ++it){
+        ... // runs through all e under d
+    }</pre>
+
+<pre>    for(e=it.end(d); e; e= --it){
+        ... // runs through all e under d
+    } </pre>
+
+<p>The second style uses convenient macros ITERATE() or
+RETRACE(), which hide the underlying <em>for()</em> loops:</p>
+
+<pre>    Department *d;
+    Employee *e;
+    AggregateIterator&lt;Department,Employee&gt; it;
+    </pre>
+
+<pre>    ...
+    ITERATE(it,d,e){
+        ... // runs through all e under d
+    }</pre>
+
+<pre>    RETRACE(it,d,e){
+        ... // runs through all e under d
+    }</pre>
+
+<p>The third style uses function next(), but you have to handle
+the end of the loop yourself. Don't forget, we are working with a
+ring:</p>
+
+<pre>    for(e=aggr.head(d); e; e=aggr.next(e)){
+        ... // runs through all e under d
+        if(e==aggr.tail(d))break; // end condition
+    }</pre>
+
+<p>Multiple loops are permitted in both styles, ++ and -- can be
+used within the same loop. If you use the iterator, functions <em>next()</em>
+and <em>prev()</em> may be used, but must not be used to advance
+the loop variable. For example:</p>
+
+<pre>    Department *d;
+    Employee *e,*ee;
+    AggregateIterator&lt;Department,Employee&gt; it;
+    Aggregate&lt;Department,Employee&gt; aggr;
+    ...
+    ITERATE(it,d,e){
+        ...
+        e=aggr.next(e);  // has no effect on the next iteration
+        ee=aggr.next(e); // no problem
+        ...
+    }</pre>
+
+<p>SUMMARY:</p>
+
+<ol>
+    <li>For basic loops, use ITERATE() or RETRACE(); otherwise,
+        start each loop with a <em>begin()</em> or <em>end()</em>
+        function.</li>
+    <li>Multiple loops are allowed.</li>
+    <li>Operators ++ and -- may be used within the same loop.</li>
+    <li>When using iterators, do not advance the loop variable
+        using the functions <em>next()</em> or <em>prev()</em>.</li>
+</ol>
+
+<hr>
+
+<p><a href="chap4.htm">continue ...</a></p>
+
+<p><a href="index.htm">to the root of the User Guide ...</a></p>
+</body>
+</html>

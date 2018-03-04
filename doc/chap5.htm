@@ -1,0 +1,219 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+
+<head>
+<meta http-equiv="Content-Type"
+content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 2.0">
+<title>Pattern Template Library  -  Chap.5</title>
+</head>
+
+<body bgcolor="#FFFFFF">
+
+<h2>Chap.5: TEMPLATE MANAGER</h2>
+
+<hr>
+
+<p>When going through the preceding example, you probably noticed
+the complex inheritance statements, especially in the class
+Department. Imagine how ugly this can be in a real life
+application with several dozen classes connected by about the
+same number of relations.</p>
+
+<p>Fortunately, you, as the user, do not have to worry about
+these statements; they can be made completely transparent. The
+reason is that the declaration of the relations already contains
+all the information:</p>
+
+<pre>// ---------------------------------------------------
+Aggregate&lt;Department,Department&gt; departments;
+Aggregate&lt;Department,Employee&gt; employees;
+Aggregate&lt;Department,Project&gt; projects;
+// ---------------------------------------------------</pre>
+
+<p>If we know that class Aggregate works with classes
+AggregateParent and AgggregateChild (and that information is
+stored in the library), then we can see that</p>
+
+<pre>from line1: Department must inherit AggregateParent&lt;Department,Department&gt;
+            Department must inherit AggregateChild&lt;Department,Department&gt;
+from line2: Department must inherit AggregateParent&lt;Department,Employee&gt;
+            Employee   must inherit AggregateChild&lt;Department,Employee&gt;
+from line3: Department must inherit AggregateParent&lt;Department,Project&gt;
+            Project    must inherit AggregateChild&lt;Department,Project&gt;</pre>
+
+<p>Instead of coding the inheritance statements by hand, we can
+write a simple template generator which reads the declarations of
+the relations, and derives the inheritance statements from them.
+The full source code of the template manager is enclosed in
+mgr/mgr.cpp, and has only 450 lines of code after stripping off
+comments and blank lines.</p>
+
+<p>To make the code generation simple, we reserve two keywords: <em>pattern
+</em>and <em>Pattern.</em> The first keyword will mark all
+pattern- or relation declarations so that the template manager
+can find them easily.</p>
+
+<pre>// ---------------------------------------------------
+pattern Aggregate&lt;Department,Department&gt; departments;
+pattern Aggregate&lt;Department,Employee&gt; employees;
+pattern Aggregate&lt;Department,Project&gt; projects;
+// ---------------------------------------------------</pre>
+
+<p>The second keyword will be a cover name for the combined
+inheritance statements required for the given class. The template
+manager will generate these Pattern(..) expressions in the form
+of a macro:</p>
+
+<pre>    class Department : Pattern(Department) {
+      ... // everything as before
+    };
+    class Employee : Pattern(Employee) {
+      ... // everything as before
+    };
+    class Project : Pattern(Project) {
+      ... // everything as before
+    };
+     </pre>
+
+<p>If we have the Template Manager which already generates code,
+we can<br>
+improve two more things:</p>
+
+<p>(1) In the example, all the relations were applications of the
+same template, AGGREGATE. For this reason, we only had to include
+one file from the library, <em>aggregate.h</em>. In real life
+situations, there would be a variety of relations used, and when
+coding everything by hand, you would have to control which
+library files were included. Since the Template Manager already
+knows which patterns/relations are going to be used, it can
+decide which files must be included. The user then includes only
+a single file, <em>pattern.h</em>, without worrying about which
+patterns are used.</p>
+
+<p>(2) Instead of using the template form of the iterators, we
+can use simplified names derived from the instances of the
+pattern. These names just hide the proper template, and are
+created under <em>pattern.h</em>. For example, instead of <em>AggregateIterator&lt;Department,Department&gt;
+it</em>; you can write <em>pattern_iterator_departments it</em>;</p>
+
+<p>With these features, the code for the example will be much
+simpler:</p>
+
+<pre>#include &lt;iostream.h&gt;
+#include &lt;string.h&gt;
+#define TEMPLATE_MANAGER
+#include &quot;pattern.h&quot; // includes all patterns used here</pre>
+
+<pre>class Department;
+class Employee;
+class Project;
+class Department : Pattern(Department) {
+    ... // everything as before
+};</pre>
+
+<pre>class Employee : Pattern(Employee) {
+    ... // everything as before
+};</pre>
+
+<pre>class Project :  Pattern(Project) {
+    ... // everything as before
+};</pre>
+
+<pre>// these statements are the roadmap to all patterns/relations
+// ---------------------------------------------------
+pattern Aggregate&lt;Department,Department,0&gt; departments;
+pattern Aggregate&lt;Department,Employee,0&gt; employees;
+pattern Aggregate&lt;Department,Project,0&gt; projects;
+// ---------------------------------------------------</pre>
+
+<pre>... // The remaining code is identical, except for the iterators
+    // that either have to have the last parameter 0,
+    // or must use the simplified form of iterators:</pre>
+
+<p>For example:</p>
+
+<pre>    AggregateIterator&lt;Department,Department,0&gt; deptIt;
+    AggregateIterator&lt;Department,Employee,0&gt;   emplIt;
+    AggregateIterator&lt;Department,Project,0&gt;    projIt;</pre>
+
+<p>or</p>
+
+<pre>    pattern_iterator_departments deptIt;
+    pattern_iterator_employees   emplIt;
+    pattern_iterator_projects    projIt;</pre>
+
+<p>Prior to compiling your program, you run the template manager
+with your program (or its header file) as the input:</p>
+
+<pre>    mgr\mgr mycode.c</pre>
+
+<p>You don't have to go through this code generation again and
+again while debugging the program. You must generate a new
+pattern.h only when you add or remote a pattern, or when one of
+the patterns changes. You must link to the Pattern Template
+library, for example for the Borland compiler:</p>
+
+<pre>    bcc -ml -I..\lib test.cpp
+</pre>
+
+<p><strong>RULES FOR USING THE Pattern(..) STATEMENTS: </strong></p>
+
+<p>(a) For every pattern, you must have the full <em>pattern </em>statement.</p>
+
+<p>(b) Every class listed in any of the 'pattern' statements must
+have a <em>Pattern s</em>tatement.</p>
+
+<p>(c) This statement must be inserted just before '{' which
+starts the class description. '{' must be on the same line, and
+nothing except possibly a comment may follow. Examples:</p>
+
+<pre>      class A : Pattern(A) {                     // OK
+      class B : Pattern(B) {};                   // not acceptable
+      class C : Pattern(C)
+      {                                          // not acceptable
+      class D : public A, public X, Pattern(D) { // OK</pre>
+
+<p>(d) There is one exception to this mechanical use of the
+statement 'Pattern'. Character ':' must not be used when the
+class does not inherit from any other application class and, at
+the same time, it participates passively as the second parameter
+in one or more statements pattern<em> Array&lt;H,T,i&gt;</em> ...
+or pattern PtrArray&lt;H,T,i&gt;. Examples:</p>
+
+<pre>        class A : Pattern(A) {
+            ...
+        };
+        class B Pattern(B) {  // Note that ':' is missing
+            ...
+        };
+        pattern Array&lt;A,B,0&gt; myArray;</pre>
+
+<p>but if B is active in other patterns, the character ':' is
+needed:</p>
+
+<pre>        class A : Pattern(A) {
+            ...
+        };
+        class B : Pattern(B) {  // Note that ':' is used
+            ...
+        };
+        pattern Array&lt;A,B,0&gt; myArr;
+        pattern Collection&lt;A,B,0&gt; myCol;</pre>
+
+<p>We do not like exceptions, but we could not figure out a
+programming trick which would make the use of Pattern() more
+uniform. The good thing is that even if you make a mistake in
+these rules, the compiler will tell you that you have an error on
+a particular line. Watch that you have always just one '{' after
+the Pattern() statement, and nothing more on the same line. If
+you violate this rule, the compiler message is usually obscure,
+and relates to the nesting of braces {}.</p>
+
+<hr>
+
+<p><a href="chap6.htm">continue ...</a></p>
+
+<p><a href="index.htm">to the root of the User Guide ...</a></p>
+</body>
+</html>

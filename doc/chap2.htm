@@ -1,0 +1,160 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+
+<head>
+<meta http-equiv="Content-Type"
+content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 2.0">
+<title>Pattern Template Library - Chap.2</title>
+</head>
+
+<body bgcolor="#FFFFFF">
+
+<h2>Chap.2: BASIC CONCEPTS</h2>
+
+<hr>
+
+<p>Let's start with an example, where every object of the class
+Department contains several objects of the class Employee, and
+each Employee knows its Department. This relation is often called
+an AGGREGATE, or 1-to-many relation, and it is a frequently
+occuring data structure in most applications.</p>
+
+<p>If you code this aggregate from scratch, very likely you would
+code it with pointers embedded in classes Department and
+Employee:</p>
+
+<p><font size="4">Class Diagram</font>:</p>
+
+<p><img src="g1class.jpg" width="362" height="268"></p>
+
+<p><font size="4">Implementation:</font></p>
+
+<p><img src="g1impl.jpg" width="650" height="417"></p>
+
+<p>There are several ways of implementing the list. Instead of
+the usual NULL-ending list, we used a circular list (ring). As
+explained in Chap.3, a ring allows fast run-time checking of data
+integrity. This library uses rings for all its classes.</p>
+
+<p>The diagram above does not show the assignment of the
+functions that will manipulate the aggregate. Most programmers
+would assign these functions arbitrarily to classes Department or
+Employee, depending on where the function could be most naturally
+implemented. For example:</p>
+
+<pre>   Employee* Employee::nextEmployee(){ return next;}
+   Department* Employee::myDepartment(){ return parent;}
+   void Department::addEmployee(Employee *e){ ... };
+   Employee* Department::firstEmployee(){
+       Employee* e=NULL; if(tail)e=tail-&gt;next; return e;}</pre>
+
+<p>As explained in references<a href="index.htm"> [1]</a> and <a
+href="index.htm">[2]</a>, if classes Department and Employee are
+not part of one aggregate, but participate in several data
+structures (a quite common situation), the result is a
+spaghetti++ code which is difficult to debug and maintain. Also,
+the classes Department and Employee (and possibly many other
+classes) could not be compiled independently. Any time you change
+one of the headers, the entire project must be recompiled.</p>
+
+<p>The cure for this problem is to implement a special manager
+class for each data structure. This class typically contains no
+or little data, but it has all the functions that manipulate the
+data structure. To provide fast access to all the pointers, this
+class must be a friend of the classes that participate in the
+data structure. For example, in our example, we can introduce
+class DEaggregate:</p>
+
+<pre>    class DEaggregate {
+    public:
+        Employee *nextEmployee(Employee *e){return e-&gt;next;}
+        Department *myDepartment(Employee *e){return e-&gt;parent;}
+        void addEmployee(Employee *e){ ... }
+        Employee *firstEmployee(Department *d){
+             Employee* e=d-&gt;tail; if(e)e=e-&gt;next; return e;}
+        ...
+    };</pre>
+
+<pre>    class Department {
+    friend class DEaggregate;
+        Employee *tail;
+        ...
+    public:
+        ...
+    };</pre>
+
+<pre>    class Employee {
+    friend class DEaggregate;
+        Department *parent;
+        Employee *next;
+        Employee *prev;
+        ...
+    public:
+        ...
+    };</pre>
+
+<p>We use manager classes to represent not only simple data
+structures such as aggregates, but also structural design
+patterns.</p>
+
+<p>Instead of coding the aggregate again for every new
+application, it makes more sense to design a generic aggregate
+with C++ templates, and store it in a class library. The pointers
+that we need in the application classes such as Employee, can be
+injected through inheritance. In the following code, class P is
+the application class which will be the parent of the aggregate,
+and class C is the class which will be the child of the
+aggregate. The integer parameter i, with default 0, prevents
+conflict when using the same organization between the same
+classes more than once (e.g. for multiple lists):</p>
+
+<p>The following classes will come from a library:</p>
+
+<pre>    template&lt;class P, class C, int i=0&gt; class Aggregate {
+    public:
+        C *next(C *c){return (AggregateChild&lt;P,C,i&gt;::c)-&gt;next;}
+        P *parent(C *c){return (AggregateChild&lt;P,C,i&gt;::c)-&gt;parent;}
+        void addTail(P *p,C *c); // add c as a tail under p
+        void remove(C *c); // remove child c from its parent
+        C *head(P *p){ C* c=(AggregateParent&lt;P,C,i&gt;::p)-&gt;tail;
+                                           if(c)c=c-&gt;next; return c;}
+        ...
+    };</pre>
+
+<pre>    template&lt;class P, class C, int i=0&gt; class AggregateParent {
+    friend class Aggregate&lt;P,C,i&gt;;
+        C *tail;
+    public:
+        AggregateParent(){tail=NULL;}
+    };</pre>
+
+<pre>    template&lt;class P, class C, int i=0&gt; class AggregateChild {
+    friend class Aggregate&lt;P,C,i&gt;;
+        P *parent;
+        C *next;
+        C *prev;
+    public:
+        AggregateChild(){parent=NULL; next=prev=NULL;}
+    };</pre>
+
+<p>The application uses the library classes. Since we have only
+one aggregate between Department and Employee, we can use the
+default value for paremeter i. In essence, this is the way the
+Pattern Template Library is coded and used:</p>
+
+<pre>    class Department : public AggregateParent&lt;Department,Employee&gt; {
+        ... // no members or functions related to the aggregate
+    };</pre>
+
+<pre>    class Employee : public AggregateChild&lt;Department,Employee&gt; {
+        ... // no members or functions related to the aggregate
+    };</pre>
+
+<hr>
+
+<p><a href="chap3.htm">continue ...</a></p>
+
+<p><a href="index.htm">the root of the User Guide ...</a></p>
+</body>
+</html>

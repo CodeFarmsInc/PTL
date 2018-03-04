@@ -1,0 +1,24 @@
+rm -r ttest/Templates.DB
+rm ttest/a.out
+rm -r mtest/Templates.DB
+rm mtest/a.out
+rm mgr/*.o
+rm mgr/mgr
+rm mgr/diff
+rm mgr/trfile
+rm ttest/*.o
+rm ttest/*.res
+rm ttest/trfile
+rm mtest/*.o
+rm mtest/*.res
+rm mtest/*.h
+rm mtest/trfile
+rm doc/res*
+rm doc/*.o
+rm doc/*.h
+rm doc/trfile
+rm envir/trfile
+rm out/trfile
+rm lib/*.old
+rm lib/*.new
+rm lib/*.cpp

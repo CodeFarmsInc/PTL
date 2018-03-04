@@ -1,0 +1,5 @@
+rm -r Templates.DB/*
+../mgr/mgr $1.cpp
+../envir/compile $1
+a.out > $1.res
+../mgr/diff $1.res ../out/$1.out
